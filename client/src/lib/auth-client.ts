@@ -14,7 +14,7 @@ export const authClient = createAuthClient({
 
 export function useAuth() {
   const state = authClient.useSession();
-  type SessionUser = { id: string; name: string; email: string; image?: string | null } & Partial<UserProfile>;
+  type SessionUser = { id: string; name: string; email: string; image?: string | null; plan?: "free" | "pro" } & Partial<UserProfile>;
   const rawUser = state.data?.user as SessionUser | undefined;
   const user = rawUser ? {
     id: String(rawUser.id),
@@ -24,7 +24,8 @@ export function useAuth() {
     role: rawUser.role || "customer",
     phone: rawUser.phone || "",
     area: rawUser.area || "",
-    bio: rawUser.bio || ""
+    bio: rawUser.bio || "",
+    plan: rawUser.plan === "pro" ? "pro" : "free"
   } as UserProfile : null;
   return { session: state.data, user, isPending: state.isPending, error: state.error, refetch: state.refetch };
 }

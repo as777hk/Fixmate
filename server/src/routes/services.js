@@ -47,8 +47,8 @@ router.get("/:id", asyncHandler(async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) return res.status(404).json({ success: false, message: "Service not found." });
   const service = await db.collection("services").findOne({ _id: new ObjectId(req.params.id), approvalStatus: "approved", isAvailable: true });
   if (!service) return res.status(404).json({ success: false, message: "Service not found." });
-  const technician = await db.collection("users").findOne({ email: service.technicianEmail }, { projection: { password: 0, role: 0 } });
-  res.json({ success: true, data: { ...service, _id: String(service._id), technician: technician ? { name: technician.name, image: technician.image || "", area: technician.area || service.serviceArea, bio: technician.bio || "" } : null } });
+  const technician = await db.collection("users").findOne({ email: service.technicianEmail }, { projection: { password: 0, role: 0, email: 0 } });
+  res.json({ success: true, data: { ...service, _id: String(service._id), technician: technician ? { name: technician.name, image: technician.image || "", area: technician.area || service.serviceArea, bio: technician.bio || "", plan: technician.plan === "pro" ? "pro" : "free" } : null } });
 }));
 
 router.post("/", verifyToken, verifyTechnician, asyncHandler(async (req, res) => {

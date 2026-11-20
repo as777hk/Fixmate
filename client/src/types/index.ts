@@ -13,6 +13,7 @@ export interface UserProfile {
   phone?: string;
   area?: string;
   bio?: string;
+  plan?: "free" | "pro";
   createdAt?: string | null;
 }
 
@@ -28,7 +29,7 @@ export interface Service {
   serviceArea: string;
   technicianName: string;
   technicianEmail: string;
-  technician?: { name: string; image?: string; area?: string; bio?: string } | null;
+  technician?: { name: string; image?: string; area?: string; bio?: string; plan?: "free" | "pro" } | null;
   approvalStatus: ServiceStatus;
   isAvailable: boolean;
   createdAt: string;
