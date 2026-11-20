@@ -7,6 +7,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import apiRouter from "./routes/index.js";
 import { handleStripeWebhook } from "./routes/payments.js";
+import { runSeed } from "../scripts/seed.js";
 import { connectDb, ensureIndexes } from "./config/db.js";
 
 const app = express();
@@ -62,6 +63,23 @@ app.get("/api/health", async (_req, res) => {
     res.status(503).json({ success: false, service: "FixMate API", database: "unavailable", message: error.message });
   }
 });
+
+// One-time, token-gated examiner data bootstrap. Remove the token after running.
+app.get("/api/internal/demo-seed", async (req, res) => {
+  const expected = process.env.FIXMATE_SEED_TOKEN;
+  const received = String(req.query.token || "");
+  if (!expected || received.length !== expected.length || received !== expected) {
+    return res.status(404).json({ success: false, message: "Not found." });
+  }
+  try {
+    const result = await runSeed();
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error("FixMate demo bootstrap failed:", error?.message || error);
+    return res.status(500).json({ success: false, message: "Demo data setup failed." });
+  }
+});
+
 app.use("/api", apiRouter);
 app.use((_req, res) => res.status(404).json({ success: false, message: "API route not found." }));
 app.use((error, _req, res, _next) => {
