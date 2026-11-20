@@ -74,7 +74,6 @@ app.use((error, _req, res, _next) => {
 });
 
 // Index creation is deliberately lazy so a cold start can still report configuration errors cleanly.
-// Index creation is deliberately lazy so a cold start can still report configuration errors cleanly.
 if (process.env.NODE_ENV !== "test") {
   connectDb().then(() => ensureIndexes()).catch((error) => console.error("Database initialization:", error.message));
 }
