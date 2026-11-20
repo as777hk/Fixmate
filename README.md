@@ -40,7 +40,7 @@ Register the Stripe webhook as `https://as-fixmate-api.vercel.app/api/payments/w
 - Responsive public pages, dashboards, loading and error states, and persistent theme preference.
 
 ## Visual assets
-Temporary, distinct service photographs are currently used for development. The final 14 custom FixMate JPGs and the supplied `fixmate-live-preview.html` reference will be integrated when provided; they are intentionally not fabricated.
+The supplied production photo pack is integrated under `client/public/images/` as optimized WebP assets: one workshop hero and 13 distinct repair-service photographs. The original archive did not include `fixmate-live-preview.html`; the supplied client source and image pack are the current implementation references.
 
 ## Repository layout and submission links
 - Client source: `client/` — https://github.com/as777hk/Fixmate/tree/main/client
