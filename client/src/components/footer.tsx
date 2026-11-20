@@ -13,7 +13,8 @@ export function Footer() {
           <p>Good repairs start with clear expectations. Find trusted help, follow every step, and pay only when the work is done.</p>
           <div className="social-links" aria-label="Developer social profiles">
             <a href="https://github.com/Annika-Islam" target="_blank" rel="noopener noreferrer" aria-label="Annika Akter on GitHub" title="Annika Akter · GitHub"><Github size={17} /></a>
-            <a href="https://www.linkedin.com/in/as-full-stack-dev/" target="_blank" rel="noopener noreferrer" aria-label="Annika Akter on LinkedIn" title="Annika Akter · LinkedIn"><Linkedin size={17} /></a>
+            <a href="https://www.linkedin.com/in/as-full-stack-dev" target="_blank" rel="noopener noreferrer" aria-label="Annika Akter on LinkedIn" title="Annika Akter · LinkedIn"><Linkedin size={17} /></a>
+            <a href="mailto:annikaakter06@gmail.com" aria-label="Email Annika Akter" title="Email Annika Akter"><Mail size={17} /></a>
           </div>
           <small className="footer-credit">Website development · Annika Akter</small>
         </div>
