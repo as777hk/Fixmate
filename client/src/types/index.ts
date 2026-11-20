@@ -30,6 +30,9 @@ export interface Service {
   technicianName: string;
   technicianEmail: string;
   technician?: { name: string; image?: string; area?: string; bio?: string; plan?: "free" | "pro" } | null;
+  ratingAvg?: number;
+  ratingCount?: number;
+  reviews?: { customerName: string; rating: number; review: string; reviewedAt?: string }[];
   approvalStatus: ServiceStatus;
   isAvailable: boolean;
   createdAt: string;
@@ -43,6 +46,7 @@ export interface StatusHistoryItem {
 
 export interface Booking {
   _id: string;
+  ticketNo?: string;
   serviceId: string;
   serviceTitle: string;
   serviceImage: string;
@@ -61,6 +65,8 @@ export interface Booking {
   paymentStatus: "unpaid" | "paid";
   statusHistory?: StatusHistoryItem[];
   createdAt: string;
+  rating?: number;
+  review?: string;
 }
 
 export interface Payment {
