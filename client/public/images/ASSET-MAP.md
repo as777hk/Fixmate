@@ -1,22 +1,20 @@
-# FixMate image asset map
+# FixMate production image map
 
-Place the 14 supplied JPG files in this folder. The 13 public service photos should be unique; do not reuse one image for multiple service cards.
+The 14 photographs were supplied in `fixmate-final-production.zip` and optimized to WebP for deployment. There is one hero image and 13 unique repair-service images.
 
-| File | Seed service |
-| --- | --- |
-| hero-workshop.jpg | Home hero / workshop scene |
-| iphone-screen-repair.jpg | iphone-screen |
-| android-battery-repair.jpg | android-battery |
-| laptop-performance-tune-up.jpg | laptop-tuneup |
-| laptop-motherboard-diagnostics.jpg | laptop-board |
-| split-ac-deep-service.jpg | ac-service |
-| ac-cooling-refrigerant-check.jpg | ac-gas |
-| refrigerator-cooling-repair.jpg | fridge-cooling |
-| refrigerator-door-seal-repair.jpg | fridge-door |
-| smart-tv-display-diagnostics.jpg | tv-screen |
-| smart-tv-wall-mount.jpg | tv-wall |
-| washing-machine-drain-repair.jpg | washer-drain |
-| washing-machine-installation.jpg | washer-install |
-| home-electrical-safety-check.jpg | electrical-check |
-
-When the files arrive, update the corresponding seed image values and the home hero source to these local /images/... paths. Keep the original aspect ratio and use the crop behavior shown in the supplied preview.
+| File | Seed service / usage |
+|---|---|
+| hero-workshop.webp | Homepage workshop hero |
+| srv-101-iphone-oled.webp | iPhone screen replacement |
+| srv-102-ac-wash.webp | Split AC deep service |
+| srv-103-macbook-board.webp | MacBook motherboard repair |
+| srv-104-fridge-compressor.webp | Refrigerator cooling repair |
+| srv-105-smart-tv-led.webp | Smart TV display diagnostics |
+| srv-106-washing-machine.webp | Washing machine drain repair |
+| srv-107-electrical-db.webp | Home electrical safety check and homepage secondary image |
+| srv-108-samsung-battery.webp | Android battery and charging repair |
+| srv-109-gaming-laptop-thermal.webp | Laptop thermal and performance tune-up |
+| srv-110-ac-outdoor-pcb.webp | Inverter AC outdoor PCB repair |
+| srv-111-fridge-defrost.webp | Refrigerator defrost and sensor repair |
+| srv-112-ev-charger-circuit.webp | EV home charger circuit setup |
+| srv-113-ipad-pro-screen.webp | iPad Pro display and touch repair |
