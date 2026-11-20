@@ -63,7 +63,6 @@ const services = [
   { seedKey: "washer-drain", title: "Washing Machine Drain Repair", category: "Washing Machine", description: "Drain pump, hose, filter and water-flow inspection for washing machines that will not drain correctly.", basePrice: 38, estimatedDuration: "2 hours", serviceMode: "Home Visit", serviceArea: "Uttara, Dhaka", image: image("photo-1626806787461-102c1bfaaea1") },
   { seedKey: "washer-install", title: "Washing Machine Installation", category: "Washing Machine", description: "Leveling, inlet and drain connection, vibration checks and a guided first cycle after installation.", basePrice: 27, estimatedDuration: "1–2 hours", serviceMode: "Home Visit", serviceArea: "Mirpur, Dhaka", image: image("photo-1624372635298-6c3c1c0a2a38") },
   { seedKey: "electrical-check", title: "Home Electrical Safety Check", category: "Electrical", description: "Outlet, switch, breaker and visible wiring inspection with safety-first recommendations and clear scope approval.", basePrice: 42, estimatedDuration: "2–3 hours", serviceMode: "Home Visit", serviceArea: "Gulshan, Dhaka", image: image("photo-1621905251189-08b45d6a269e") },
-  { seedKey: "fan-wiring", title: "Ceiling Fan & Light Wiring", category: "Electrical", description: "Safe ceiling fan, light fixture and switch wiring with circuit isolation and a final functional test.", basePrice: 25, estimatedDuration: "1–2 hours", serviceMode: "Home Visit", serviceArea: "Dhanmondi, Dhaka", image: image("photo-1621905252507-b35492cc74b4") }
 ];
 
 export async function runSeed() {
@@ -93,6 +92,9 @@ export async function runSeed() {
     const { technician, ...service } = spec;
     serviceDocs.push({ ...service, technicianName: technician.name, technicianEmail: technician.email, approvalStatus: "pending", isAvailable: true, createdAt: new Date() });
   }
+
+  // Remove the retired extra seed listing so the public asset set remains one-to-one with 13 services.
+  await db.collection("services").deleteOne({ seedKey: "fan-wiring" });
 
   const serviceIds = new Map();
   for (const spec of serviceDocs) {
@@ -163,9 +165,9 @@ export async function runSeed() {
   console.log(`Technician 1: ${techOne.email}`);
   console.log(`Technician 2: ${techTwo.email}`);
   console.log(`Customer: ${customer.email}`);
-  console.log("Created/updated 14 approved services, 2 pending services, 5 sample bookings and a paid demo transaction.");
+  console.log("Created/updated 13 approved services, 2 pending services, 5 sample bookings and a paid demo transaction.");
   console.log("Local demo passwords are documented in README.md; production values must be supplied through environment variables.");
-  return { success: true, users: 4, approvedServices: 14, pendingServices: 2, bookings: 5, payments: 1 };
+  return { success: true, users: 4, approvedServices: 13, pendingServices: 2, bookings: 5, payments: 1 };
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
