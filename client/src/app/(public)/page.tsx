@@ -76,7 +76,7 @@ export default function HomePage() {
           <div className="hm-hero-visual">
             <div className="hm-hero-image-frame">
               <img
-                src="https://images.pexels.com/photos/32588548/pexels-photo-32588548/free-photo-of-plumber-repairing-pipe-with-wrench-indoors.jpeg?auto=compress&cs=tinysrgb&w=1500"
+                src="/images/hero-workshop.webp"
                 alt="Professional plumber repairing a pipe with a wrench"
                 className="hm-hero-image"
               />
@@ -127,7 +127,7 @@ export default function HomePage() {
         <div className="shell hm-about-grid">
           <div className="hm-about-visual">
             <img
-              src="https://images.pexels.com/photos/15124970/pexels-photo-15124970/free-photo-of-men-working-inside-a-house-under-repairs.jpeg?auto=compress&dpr=1&h=750&w=1260"
+              src="/images/srv-107-electrical-db.webp"
               alt="Repair professional working on a home improvement project"
               className="hm-about-image"
             />
