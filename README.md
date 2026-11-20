@@ -21,7 +21,14 @@ Client: `http://localhost:3000`. API health: `http://localhost:5000/api/health`.
 ## Production configuration
 Set secrets only in the API deployment environment. Integrations include MongoDB Atlas, Better Auth, Stripe test-mode credentials and an ImgBB API key. Google OAuth is optional. Never commit environment files or credentials.
 
-Add the frontend origin to the Express CORS allowlist and Better Auth trusted origins. Configure the Stripe webhook endpoint as `POST /api/payments/webhook` and store its signing secret on the server. Deploy from the separate `client/` and `server/` roots.
+Create two Vercel projects from this repository:
+
+- **Client project:** Root Directory `client/`, domain `https://as-fixmate.vercel.app`.
+- **API project:** Root Directory `server/`, domain `https://as-fixmate-api.vercel.app`.
+
+For the client project, set `NEXT_PUBLIC_API_URL`, `INTERNAL_API_URL` and `API_URL` to `https://as-fixmate-api.vercel.app`; set `NEXT_PUBLIC_SITE_URL` to `https://as-fixmate.vercel.app`. For the API project, set `BETTER_AUTH_URL=https://as-fixmate-api.vercel.app`, `CLIENT_URL=https://as-fixmate.vercel.app` and `CORS_ALLOWED_ORIGINS=https://as-fixmate.vercel.app`. Also configure MongoDB Atlas, a 32+ character `BETTER_AUTH_SECRET`, Stripe test-mode `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`, and `IMGBB_API_KEY`. Google OAuth is optional; when enabled, register the API callback URL `https://as-fixmate-api.vercel.app/api/auth/callback/google` and the client origin in Google Cloud.
+
+Register the Stripe webhook as `https://as-fixmate-api.vercel.app/api/payments/webhook` in Stripe Test Mode. Never place server secrets in the client project or commit them to GitHub. Run `npm run seed` against the intended MongoDB database after setting secure admin, technician and customer seed credentials in the server environment.
 
 ## Product capabilities
 - Customer, technician and administrator experiences with role-aware navigation.
@@ -33,7 +40,7 @@ Add the frontend origin to the Express CORS allowlist and Better Auth trusted or
 - Responsive public pages, dashboards, loading and error states, and persistent theme preference.
 
 ## Visual assets
-Temporary images are currently in place. The final 14 custom FixMate photographs and supplied live-preview reference will replace them when added.
+Temporary, distinct service photographs are currently used for development. The final 14 custom FixMate JPGs and the supplied `fixmate-live-preview.html` reference will be integrated when provided; they are intentionally not fabricated.
 
 ## Quality checks
 Run `npm run check` for server checks and client TypeScript validation; run `npm run build` for production builds. Configure real integration credentials before testing OAuth, uploads or Stripe end to end.

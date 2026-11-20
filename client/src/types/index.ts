@@ -63,6 +63,7 @@ export interface Booking {
   problemDescription: string;
   status: BookingStatus;
   paymentStatus: "unpaid" | "paid";
+  paymentTransactionId?: string;
   statusHistory?: StatusHistoryItem[];
   createdAt: string;
   updatedAt?: string;

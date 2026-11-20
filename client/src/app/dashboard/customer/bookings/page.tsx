@@ -40,6 +40,7 @@ export default function CustomerBookingsPage(){
         ["Preferred date",formatDate(booking.preferredDate)],
         ["Completed on",formatDate(booking.updatedAt||booking.createdAt)],
         ["Payment status","Paid"],
+        ["Stripe transaction",booking.paymentTransactionId||"Not returned"],
         ["Total paid",money(booking.finalAmount||booking.basePrice)]
       ];
       let y=65;

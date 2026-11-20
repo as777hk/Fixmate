@@ -22,6 +22,10 @@ jobs:
           node-version: 22
       - name: Install workspace dependencies
         run: npm install
+      - name: Summarize dependency advisories
+        run: |
+          npm audit --json > npm-audit.json || true
+          node -e 'const a=require("./npm-audit.json"); console.log("Dependency audit:", JSON.stringify(a.metadata?.vulnerabilities || {})); for (const [name, item] of Object.entries(a.vulnerabilities || {})) console.log(name, "severity="+item.severity, "range="+item.range, "fix="+JSON.stringify(item.fixAvailable));'
       - name: Validate server and client types
         run: npm run check
       - name: Build production client and API checks
