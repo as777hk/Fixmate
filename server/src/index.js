@@ -55,32 +55,6 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 
-app.get("/api/internal/demo-seed-once", async (_req, res) => {
-  if (process.env.FIXMATE_RUN_DEMO_SEED !== "true") return res.status(404).json({ success: false });
-  const markerId = "examiner-demo-seed-2026-11-20-v1";
-  const markers = db.collection("systemFlags");
-  try {
-    await connectDb();
-    await ensureIndexes();
-    const existing = await markers.findOne({ _id: markerId });
-    if (existing?.status === "completed") return res.json({ success: true, alreadySeeded: true, result: existing.result });
-    if (!existing) {
-      try { await markers.insertOne({ _id: markerId, status: "running", startedAt: new Date() }); }
-      catch (error) {
-        if (error?.code === 11000) return res.status(409).json({ success: false, message: "Seed already claimed." });
-        throw error;
-      }
-    }
-    const result = await runSeed();
-    await markers.updateOne({ _id: markerId }, { $set: { status: "completed", completedAt: new Date(), result } });
-    return res.json({ success: true, result });
-  } catch (error) {
-    await markers.deleteOne({ _id: markerId }).catch(() => {});
-    console.error("FixMate examiner seed failed:", error?.stack || error);
-    return res.status(500).json({ success: false, message: "Examiner data setup failed." });
-  }
-});
-
 app.get("/api/health", async (_req, res) => {
   try {
     await connectDb();
