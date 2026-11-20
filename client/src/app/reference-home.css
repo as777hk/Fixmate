@@ -282,3 +282,33 @@ body { font-family: "Inter", ui-sans-serif, system-ui, sans-serif; }\n.hm-hero-c
 :root[data-theme="dark"] .hm-ticket-progress span { background: #334155; }
 :root[data-theme="dark"] .hm-ticket-progress span.is-complete { background: #3b82f6; }
 @media (max-width:780px) { .hm-ticket-card { max-width: none; } }
+
+/* Technician membership and consistent repair-status colours */
+.pro-plan-panel { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:18px 0 22px; padding:22px 24px; border-color:#bfdbfe; background:linear-gradient(120deg,#eff6ff 0%,#fff 76%); }
+.pro-plan-copy { min-width:0; }
+.pro-plan-copy h3 { margin:7px 0 5px; color:#0f172a; font-family:"Plus Jakarta Sans","Inter",sans-serif; font-size:19px; font-weight:800; letter-spacing:-.04em; }
+.pro-plan-copy p { max-width:650px; margin:0; color:#64748b; font-size:11px; line-height:1.7; }
+.pro-plan-action { display:flex; align-items:center; justify-content:flex-end; gap:16px; flex:0 0 auto; }
+.pro-plan-action > strong { display:flex; flex-direction:column; color:#1d4ed8; font-family:"Plus Jakarta Sans","Inter",sans-serif; font-size:23px; line-height:1.1; }
+.pro-plan-action > strong small { margin-top:4px; color:#64748b; font-family:Inter,sans-serif; font-size:8px; font-weight:700; }
+.verified-pro-badge { display:inline-flex; align-items:center; gap:6px; width:fit-content; padding:7px 10px; color:#065f46; background:#d1fae5; border:1px solid #a7f3d0; border-radius:999px; font-size:9px; font-weight:850; white-space:nowrap; }
+.status-info,.status-requested { color:#1d4ed8; background:#dbeafe; }
+.status-indigo,.status-accepted { color:#4338ca; background:#e0e7ff; }
+.status-warning,.status-in-progress { color:#92400e; background:#fef3c7; }
+.status-success,.status-completed { color:#047857; background:#d1fae5; }
+.status-danger,.status-rejected { color:#be123c; background:#ffe4e6; }
+.status-muted,.status-cancelled { color:#475569; background:#e2e8f0; }
+:root[data-theme="dark"] .pro-plan-panel { background:linear-gradient(120deg,#172554 0%,#0f172a 78%); border-color:#1e40af; }
+:root[data-theme="dark"] .pro-plan-copy h3 { color:#f8fafc; }
+:root[data-theme="dark"] .pro-plan-copy p,:root[data-theme="dark"] .pro-plan-action > strong small { color:#94a3b8; }
+:root[data-theme="dark"] .verified-pro-badge { color:#a7f3d0; background:#064e3b; border-color:#065f46; }
+:root[data-theme="dark"] .status-info,:root[data-theme="dark"] .status-requested { color:#bfdbfe; background:#1e3a8a; }
+:root[data-theme="dark"] .status-indigo,:root[data-theme="dark"] .status-accepted { color:#c7d2fe; background:#312e81; }
+:root[data-theme="dark"] .status-warning,:root[data-theme="dark"] .status-in-progress { color:#fde68a; background:#78350f; }
+:root[data-theme="dark"] .status-success,:root[data-theme="dark"] .status-completed { color:#a7f3d0; background:#064e3b; }
+:root[data-theme="dark"] .status-danger,:root[data-theme="dark"] .status-rejected { color:#fecdd3; background:#881337; }
+:root[data-theme="dark"] .status-muted,:root[data-theme="dark"] .status-cancelled { color:#cbd5e1; background:#334155; }
+@media(max-width:620px) {
+  .pro-plan-panel { align-items:flex-start; flex-direction:column; padding:18px; }
+  .pro-plan-action { justify-content:flex-start; flex-wrap:wrap; }
+}
