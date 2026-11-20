@@ -64,22 +64,6 @@ app.get("/api/health", async (_req, res) => {
   }
 });
 
-// One-time, token-gated examiner data bootstrap. Remove the token after running.
-app.get("/api/internal/demo-seed", async (req, res) => {
-  const expected = process.env.FIXMATE_SEED_TOKEN;
-  const received = String(req.query.token || "");
-  if (!expected || received.length !== expected.length || received !== expected) {
-    return res.status(404).json({ success: false, message: "Not found." });
-  }
-  try {
-    const result = await runSeed();
-    return res.json({ success: true, data: result });
-  } catch (error) {
-    console.error("FixMate demo bootstrap failed:", error?.message || error);
-    return res.status(500).json({ success: false, message: "Demo data setup failed." });
-  }
-});
-
 app.use("/api", apiRouter);
 app.use((_req, res) => res.status(404).json({ success: false, message: "API route not found." }));
 app.use((error, _req, res, _next) => {
@@ -90,8 +74,35 @@ app.use((error, _req, res, _next) => {
 });
 
 // Index creation is deliberately lazy so a cold start can still report configuration errors cleanly.
+async function maybeRunExaminerSeedOnce() {
+  if (process.env.FIXMATE_RUN_DEMO_SEED !== "true") return;
+  const markerId = "examiner-demo-seed-2026-11-20-v1";
+  const markers = db.collection("systemFlags");
+  try {
+    await markers.insertOne({ _id: markerId, status: "running", startedAt: new Date() });
+  } catch (error) {
+    if (error?.code === 11000) {
+      console.log("FixMate examiner seed already claimed; skipping duplicate run.");
+      return;
+    }
+    throw error;
+  }
+  try {
+    const result = await runSeed();
+    await markers.updateOne({ _id: markerId }, { $set: { status: "completed", completedAt: new Date(), result } });
+    console.log("FixMate examiner demo data seeded:", JSON.stringify(result));
+  } catch (error) {
+    await markers.deleteOne({ _id: markerId }).catch(() => {});
+    throw error;
+  }
+}
 if (process.env.NODE_ENV !== "test") {
-  connectDb().then(() => ensureIndexes()).catch((error) => console.error("Database initialization:", error.message));
+  connectDb()
+    .then(async () => {
+      await ensureIndexes();
+      await maybeRunExaminerSeedOnce();
+    })
+    .catch((error) => console.error("Database initialization:", error.message));
 }
 
 export default app;
