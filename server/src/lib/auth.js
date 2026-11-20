@@ -47,7 +47,8 @@ export const auth = betterAuth({
       role: { type: "string", required: false, defaultValue: "customer", input: true },
       phone: { type: "string", required: false, input: false },
       area: { type: "string", required: false, input: false },
-      bio: { type: "string", required: false, input: false }
+      bio: { type: "string", required: false, input: false },
+      plan: { type: "string", required: false, defaultValue: "free", input: false }
     }
   },
   plugins: [jwt({ jwt: { definePayload: ({ user }) => ({ id: user.id, email: user.email }) } })],

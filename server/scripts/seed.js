@@ -38,6 +38,7 @@ async function ensureAccount(account) {
   }
   const updates = {
     role: account.role,
+    plan: user.plan === "pro" ? "pro" : "free",
     area: account.area || "Dhaka, Bangladesh",
     bio: account.bio || (account.role === "customer" ? "FixMate member." : "Verified FixMate service professional."),
     image: user.image || "",

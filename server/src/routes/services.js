@@ -53,6 +53,12 @@ router.get("/:id", asyncHandler(async (req, res) => {
 
 router.post("/", verifyToken, verifyTechnician, asyncHandler(async (req, res) => {
   await connectDb();
+  const technician = await db.collection("users").findOne({ email: req.user.email }, { projection: { plan: 1 } });
+  const plan = technician?.plan === "pro" ? "pro" : "free";
+  if (plan === "free") {
+    const activeListings = await db.collection("services").countDocuments({ technicianEmail: req.user.email });
+    if (activeListings >= 3) return res.status(403).json({ success: false, message: "Your free plan includes up to 3 service listings. Upgrade to FixMate Pro for unlimited listings." });
+  }
   const body = req.body || {};
   const title = String(body.title || "").trim();
   const category = String(body.category || "");
