@@ -9,7 +9,7 @@ import { StatCard } from "@/components/stat-card";
 import { RevenueChart } from "@/components/revenue-chart";
 import { BookingTimeline } from "@/components/booking-timeline";
 import { EmptyState } from "@/components/empty-state";
-import { apiFetch, formatDate } from "@/lib/api";
+import { apiFetch, formatDate, money } from "@/lib/api";
 import type { Booking } from "@/types";
 
 type Stats = { totalRequests:number; activeJobs:number; completedJobs:number; totalSpent:number; unpaidJobs:number; recentBookings:Booking[]; chart:{label:string;value:number}[] };
