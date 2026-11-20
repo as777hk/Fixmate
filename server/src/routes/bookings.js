@@ -51,7 +51,10 @@ router.post("/", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
 router.get("/my", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
   await connectDb();
   const bookings = await db.collection("bookings").find({ customerEmail: req.user.email }).sort({ createdAt: -1 }).toArray();
-  res.json({ success: true, data: bookings.map((item) => ({ ...item, _id: String(item._id) })) });
+  const bookingIds = bookings.map((item) => item._id.toString());
+  const payments = bookingIds.length ? await db.collection("payments").find({ bookingId: { $in: bookingIds } }).project({ bookingId: 1, transactionId: 1 }).toArray() : [];
+  const transactionByBooking = new Map(payments.map((item) => [item.bookingId, item.transactionId]));
+  res.json({ success: true, data: bookings.map((item) => ({ ...item, _id: String(item._id), paymentTransactionId: transactionByBooking.get(String(item._id)) || "" })) });
 }));
 
 router.get("/technician", verifyToken, verifyTechnician, asyncHandler(async (req, res) => {

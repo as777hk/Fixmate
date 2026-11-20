@@ -170,7 +170,7 @@ router.post("/create-pro-checkout-session", verifyToken, asyncHandler(async (req
     success_url: clientUrl + "/dashboard/technician?plan_session_id={CHECKOUT_SESSION_ID}",
     cancel_url: clientUrl + "/dashboard/technician?plan_cancelled=1",
     metadata: { purchaseType: "technician_pro", technicianEmail: user.email, technicianId: String(user._id) }
-  }, { idempotencyKey: "fixmate-pro-" + String(user._id) });
+  }, { idempotencyKey: "fixmate-pro-" + String(user._id) + "-" + Date.now() });
   res.json({ success: true, data: { url: session.url, sessionId: session.id } });
 }));
 

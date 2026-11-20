@@ -116,11 +116,11 @@ dashboardRouter.get("/technician-stats", verifyToken, verifyTechnician, asyncHan
     db.collection("services").countDocuments({ technicianEmail: req.user.email }),
     db.collection("services").countDocuments({ technicianEmail: req.user.email, approvalStatus: "approved" }),
     db.collection("bookings").countDocuments({ technicianEmail: req.user.email, status: "requested" }),
-    db.collection("payments").aggregate([{ $match: { technicianEmail: req.user.email } }, { $group: { _id: null, amount: { $sum: "$amount" } } }]).toArray()
+    db.collection("payments").aggregate([{ $match: { technicianEmail: req.user.email, serviceTitle: { $ne: "FixMate Pro Technician Plan" } } }, { $group: { _id: null, amount: { $sum: "$amount" } } }]).toArray()
   ]);
   const [jobs, earnings] = await Promise.all([
-    db.collection("bookings").aggregate([{ $match: { technicianEmail: req.user.email } }, { $group: { _id: "$status", count: { $sum: 1 } } }]).toArray(),
-    db.collection("payments").aggregate([{ $match: { technicianEmail: req.user.email } }, { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$paidAt" } }, total: { $sum: "$amount" } } }, { $sort: { _id: 1 } }]).toArray()
+    db.collection("bookings").aggregate([{ $match: { technicianEmail: req.user.email, serviceTitle: { $ne: "FixMate Pro Technician Plan" } } }, { $group: { _id: "$status", count: { $sum: 1 } } }]).toArray(),
+    db.collection("payments").aggregate([{ $match: { technicianEmail: req.user.email, serviceTitle: { $ne: "FixMate Pro Technician Plan" } } }, { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$paidAt" } }, total: { $sum: "$amount" } } }, { $sort: { _id: 1 } }]).toArray()
   ]);
   res.json({ success: true, data: { totalServices, approvedServices, pendingRequests, totalEarnings: Number(paid[0]?.amount || 0), jobChart: jobs.map((item) => ({ label: item._id, value: item.count })), earningsChart: earnings.map((item) => ({ label: item._id, value: item.total })) } });
 }));

@@ -114,12 +114,13 @@ export async function runSeed() {
     { seedKey: "demo-completed-paid", serviceKey: "tv-screen", technician: techOne, status: "completed", paymentStatus: "paid", days: -5, desc: "The TV screen flickers after startup and shows a dim patch on the right side of the display." }
   ];
   let paidBooking;
-  for (const spec of bookingSpecs) {
+  for (const [bookingIndex, spec] of bookingSpecs.entries()) {
     const service = serviceDocs.find((item) => item.seedKey === spec.serviceKey);
     const serviceId = serviceIds.get(spec.serviceKey);
     const preferredDate = new Date();
     preferredDate.setDate(preferredDate.getDate() + spec.days);
     const booking = {
+      ticketNo: "FM-" + String(1041 + bookingIndex),
       seedKey: spec.seedKey, serviceId, serviceTitle: service.title, serviceImage: service.image, category: service.category,
       basePrice: service.basePrice, technicianName: spec.technician.name, technicianEmail: spec.technician.email,
       customerName: customer.name, customerEmail: customer.email, customerPhone: "+880 1700-123456",
