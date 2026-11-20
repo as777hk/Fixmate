@@ -35,7 +35,8 @@ The production demo seed previously created examiner accounts for all required r
 
 ## Social profile links
 - Developer GitHub: https://github.com/Annika-Islam
-- Developer LinkedIn: https://www.linkedin.com/in/as-full-stack-dev/
+- Developer LinkedIn: https://www.linkedin.com/in/as-full-stack-dev
+- Developer email: annikaakter06@gmail.com
 
 ## Outstanding verification
 - Google OAuth is not enabled in production; Google Client ID/Secret must be supplied and the client flag enabled before Google sign-in can be tested.
