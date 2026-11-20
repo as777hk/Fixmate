@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUpRight, Github, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 import { Brand } from "./brand";
 
 const categories = ["Smartphone", "Laptop & PC", "AC", "Refrigerator", "TV", "Washing Machine", "Electrical"];
@@ -11,15 +11,11 @@ export function Footer() {
         <div className="footer-brand-col">
           <Brand inverse />
           <p>Good repairs start with clear expectations. Find trusted help, follow every step, and pay only when the work is done.</p>
-          <div className="social-links">
-            <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={17} /></a>
-            <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={17} /></a>
-            <a href="https://x.com/" target="_blank" rel="noreferrer" aria-label="X">
-              <svg className="x-social" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-                <path d="M18.9 1.15h3.68l-8.04 9.19L24 23.2h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.78h2.04L6.39 3.3H4.2l13.41 17.63Z" />
-              </svg>
-            </a>
+          <div className="social-links" aria-label="Developer social profiles">
+            <a href="https://github.com/Annika-Islam" target="_blank" rel="noopener noreferrer" aria-label="Annika Akter on GitHub" title="Annika Akter · GitHub"><Github size={17} /></a>
+            <a href="https://www.linkedin.com/in/as-full-stack-dev/" target="_blank" rel="noopener noreferrer" aria-label="Annika Akter on LinkedIn" title="Annika Akter · LinkedIn"><Linkedin size={17} /></a>
           </div>
+          <small className="footer-credit">Website development · Annika Akter</small>
         </div>
         <div><h3>Explore</h3><Link href="/">Home</Link><Link href="/services">Browse services</Link><Link href="/about">How it works</Link><Link href="/sign-up">Join as a technician</Link></div>
         <div><h3>Popular categories</h3>{categories.map((category) => <Link key={category} href={`/services?category=${encodeURIComponent(category)}`}>{category}</Link>)}</div>
