@@ -31,6 +31,7 @@ router.post("/", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
   if (existing) return res.status(409).json({ success: false, message: "You already have an active request for this service" });
 
   const booking = {
+    ticketNo: "FM-" + Date.now().toString().slice(-6),
     serviceId: service._id.toString(), serviceTitle: service.title, serviceImage: service.image, category: service.category,
     basePrice: service.basePrice, technicianName: service.technicianName, technicianEmail: service.technicianEmail,
     customerName: customer?.name || req.user.name, customerEmail: req.user.email,
@@ -97,4 +98,27 @@ router.patch("/:id/status", verifyToken, verifyTechnician, asyncHandler(async (r
   res.json({ success: true, message: `Booking moved to ${nextStatus}.`, data: { ...updated, _id: String(updated._id) } });
 }));
 
+router.post("/:id/review", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
+  await connectDb();
+  if (!ObjectId.isValid(req.params.id)) return res.status(404).json({ success: false, message: "Booking not found." });
+  const rating = Number(req.body?.rating);
+  const review = String(req.body?.review || "").trim();
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ success: false, message: "Choose a rating from 1 to 5 stars." });
+  if (review.length < 8 || review.length > 600) return res.status(400).json({ success: false, message: "Your review must contain 8 to 600 characters." });
+  const booking = await db.collection("bookings").findOne({ _id: new ObjectId(req.params.id), customerEmail: req.user.email });
+  if (!booking) return res.status(404).json({ success: false, message: "Booking not found." });
+  if (booking.status !== "completed" || booking.paymentStatus !== "paid") return res.status(400).json({ success: false, message: "You can review a repair after it has been completed and paid." });
+  if (booking.rating) return res.status(409).json({ success: false, message: "You have already reviewed this repair." });
+  const now = new Date();
+  const updated = await db.collection("bookings").updateOne({ _id: booking._id, customerEmail: req.user.email, rating: { $exists: false }, status: "completed", paymentStatus: "paid" }, { $set: { rating, review, reviewedAt: now, updatedAt: now } });
+  if (!updated.modifiedCount) return res.status(409).json({ success: false, message: "This repair was reviewed already. Refresh your bookings." });
+  const totals = await db.collection("bookings").aggregate([
+    { $match: { serviceId: booking.serviceId, paymentStatus: "paid", rating: { $gte: 1 } } },
+    { $group: { _id: "$serviceId", ratingAvg: { $avg: "$rating" }, ratingCount: { $sum: 1 } } }
+  ]).toArray();
+  if (ObjectId.isValid(booking.serviceId) && totals[0]) {
+    await db.collection("services").updateOne({ _id: new ObjectId(booking.serviceId) }, { $set: { ratingAvg: Number(totals[0].ratingAvg.toFixed(2)), ratingCount: totals[0].ratingCount } });
+  }
+  res.json({ success: true, message: "Thank you for sharing your repair experience.", data: { rating, review, reviewedAt: now } });
+}));
 export default router;

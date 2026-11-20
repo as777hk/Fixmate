@@ -48,7 +48,18 @@ router.get("/:id", asyncHandler(async (req, res) => {
   const service = await db.collection("services").findOne({ _id: new ObjectId(req.params.id), approvalStatus: "approved", isAvailable: true });
   if (!service) return res.status(404).json({ success: false, message: "Service not found." });
   const technician = await db.collection("users").findOne({ email: service.technicianEmail }, { projection: { password: 0, role: 0, email: 0 } });
-  res.json({ success: true, data: { ...service, _id: String(service._id), technician: technician ? { name: technician.name, image: technician.image || "", area: technician.area || service.serviceArea, bio: technician.bio || "", plan: technician.plan === "pro" ? "pro" : "free" } : null } });
+  const reviews = await db.collection("bookings")
+    .find({ serviceId: service._id.toString(), paymentStatus: "paid", rating: { $gte: 1 } })
+    .sort({ reviewedAt: -1 })
+    .limit(10)
+    .project({ customerName: 1, rating: 1, review: 1, reviewedAt: 1 })
+    .toArray();
+  res.json({ success: true, data: {
+    ...service,
+    _id: String(service._id),
+    technician: technician ? { name: technician.name, image: technician.image || "", area: technician.area || service.serviceArea, bio: technician.bio || "", plan: technician.plan === "pro" ? "pro" : "free" } : null,
+    reviews: reviews.map((item) => ({ customerName: item.customerName, rating: item.rating, review: item.review, reviewedAt: item.reviewedAt }))
+  } });
 }));
 
 router.post("/", verifyToken, verifyTechnician, asyncHandler(async (req, res) => {

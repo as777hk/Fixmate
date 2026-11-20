@@ -94,12 +94,17 @@ adminRouter.get("/payments", verifyToken, verifyAdmin, asyncHandler(async (_req,
 // Role-specific overview metrics share the same API base but remain protected by role middleware.
 dashboardRouter.get("/customer-stats", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
   await connectDb();
-  const bookings = await db.collection("bookings").find({ customerEmail: req.user.email }).toArray();
+  const [bookings, spendRows] = await Promise.all([
+    db.collection("bookings").find({ customerEmail: req.user.email }).toArray(),
+    db.collection("payments").aggregate([{ $match: { customerEmail: req.user.email, paymentStatus: "paid" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]).toArray()
+  ]);
   const count = (status) => bookings.filter((item) => item.status === status).length;
   res.json({ success: true, data: {
     totalRequests: bookings.length,
     activeJobs: bookings.filter((item) => ["requested", "accepted", "in-progress"].includes(item.status)).length,
     completedJobs: count("completed"),
+    totalSpent: Number(spendRows[0]?.total || 0),
+    unpaidJobs: bookings.filter((item) => item.status === "completed" && item.paymentStatus === "unpaid").length,
     recentBookings: bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5).map((item) => ({ ...item, _id: String(item._id) })),
     chart: ["requested", "accepted", "in-progress", "completed", "rejected", "cancelled"].map((status) => ({ label: status, value: count(status) }))
   } });
