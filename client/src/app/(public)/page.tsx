@@ -8,6 +8,7 @@ import {
   Search, ShieldCheck, Smartphone, Tv, WashingMachine, Wrench, Zap
 } from "lucide-react";
 import { ServiceCard } from "@/components/service-card";
+import { TicketReplay } from "@/components/ticket-replay";
 import { apiFetch } from "@/lib/api";
 import type { Service } from "@/types";
 
@@ -67,8 +68,10 @@ export default function HomePage() {
             </form>
             <div className="hm-hero-proof">
               <span><ShieldCheck size={16} /> Reviewed service listings</span>
-              <span><CheckCircle2 size={16} /> Clear repair updates</span>
+              <span><CheckCircle2 size={16} /> Pay after completion</span>
+              <span><CheckCircle2 size={16} /> Seven repair categories</span>
             </div>
+            <TicketReplay />
           </div>
           <div className="hm-hero-visual">
             <div className="hm-hero-image-frame">
