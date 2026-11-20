@@ -42,5 +42,10 @@ Register the Stripe webhook as `https://as-fixmate-api.vercel.app/api/payments/w
 ## Visual assets
 Temporary, distinct service photographs are currently used for development. The final 14 custom FixMate JPGs and the supplied `fixmate-live-preview.html` reference will be integrated when provided; they are intentionally not fabricated.
 
+## Repository layout and submission links
+- Client source: `client/` — https://github.com/as777hk/Fixmate/tree/main/client
+- Server source: `server/` — https://github.com/as777hk/Fixmate/tree/main/server
+- This is a single monorepo; both Vercel projects deploy from their respective root directories.
+
 ## Quality checks
 Run `npm run check` for server checks and client TypeScript validation; run `npm run build` for production builds. Configure real integration credentials before testing OAuth, uploads or Stripe end to end.
