@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   icons: { icon: "/images/repair-placeholder.svg" },
   openGraph: { title: "FixMate — Trusted repair help, one click away", description: "Clear repair requests, reviewed professionals and pay-after-service checkout.", type: "website" }
 };
-export const viewport: Viewport = { themeColor: "#1d2340", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#2563eb", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en" suppressHydrationWarning><body><Providers>{children}</Providers></body></html>;
