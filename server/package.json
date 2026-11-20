@@ -1,0 +1,25 @@
+{
+  "name": "fixmate-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "seed": "node scripts/seed.js",
+    "check": "node --check index.js && node --check src/index.js && node --check src/lib/auth.js && node --check src/middleware/auth.js && node --check src/utils/http.js && node --check src/routes/index.js && node --check src/routes/services.js && node --check src/routes/bookings.js && node --check src/routes/users.js && node --check src/routes/uploads.js && node --check src/routes/admin.js && node --check src/routes/payments.js && node --check scripts/seed.js"
+  },
+  "dependencies": {
+    "@better-auth/mongo-adapter": "^1.7.25",
+    "better-auth": "^1.7.25",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "jose": "^6.1.3",
+    "mongodb": "^6.20.0",
+    "multer": "^2.0.2",
+    "stripe": "^20.0.0"
+  }
+}
