@@ -65,6 +65,7 @@ export interface Booking {
   paymentStatus: "unpaid" | "paid";
   statusHistory?: StatusHistoryItem[];
   createdAt: string;
+  updatedAt?: string;
   rating?: number;
   review?: string;
 }
