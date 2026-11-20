@@ -83,6 +83,29 @@ async function fulfillBookingPayment(session) {
   }
 }
 
+async function fulfillTechnicianProPayment(session) {
+  await connectDb();
+  if (session.payment_status !== "paid") throw Object.assign(new Error("Stripe session has not been paid."), { status: 400 });
+  const technicianEmail = String(session.metadata?.technicianEmail || "").toLowerCase();
+  if (session.metadata?.purchaseType !== "technician_pro" || !technicianEmail || !session.id) throw Object.assign(new Error("Technician plan payment metadata is incomplete."), { status: 400 });
+  if (Number(session.amount_total) !== 2900 || session.currency !== "usd") throw Object.assign(new Error("The paid amount does not match the FixMate Pro plan."), { status: 400 });
+  const user = await db.collection("users").findOne({ email: technicianEmail, role: "technician" });
+  if (!user) throw Object.assign(new Error("Technician account could not be found."), { status: 404 });
+  const payment = {
+    bookingId: "technician-plan:" + String(user._id) + ":" + session.id,
+    serviceTitle: "FixMate Pro Technician Plan",
+    customerName: user.name || "FixMate technician", customerEmail: user.email,
+    technicianName: user.name || "FixMate technician", technicianEmail: user.email,
+    amount: 29, currency: "usd",
+    transactionId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || "",
+    stripeSessionId: session.id, paymentStatus: "paid",
+    paidAt: new Date(session.created ? session.created * 1000 : Date.now())
+  };
+  await db.collection("payments").updateOne({ stripeSessionId: session.id }, { $setOnInsert: payment }, { upsert: true });
+  await db.collection("users").updateOne({ _id: user._id, role: "technician" }, { $set: { plan: "pro", proActivatedAt: new Date(), updatedAt: new Date() } });
+  const saved = await db.collection("payments").findOne({ stripeSessionId: session.id });
+  return { ...saved, _id: String(saved._id), plan: "pro" };
+}
 export async function handleStripeWebhook(req, res) {
   const stripe = getStripe();
   const signature = req.headers["stripe-signature"];
@@ -96,7 +119,10 @@ export async function handleStripeWebhook(req, res) {
   try {
     if (["checkout.session.completed", "checkout.session.async_payment_succeeded"].includes(event.type)) {
       const session = event.data.object;
-      if (session.payment_status === "paid") await fulfillBookingPayment(session);
+      if (session.payment_status === "paid") {
+        if (session.metadata?.purchaseType === "technician_pro") await fulfillTechnicianProPayment(session);
+        else await fulfillBookingPayment(session);
+      }
     }
     return res.json({ received: true });
   } catch (error) {
@@ -128,6 +154,35 @@ router.post("/create-checkout-session", verifyToken, verifyCustomer, asyncHandle
   res.json({ success: true, data: { url: session.url, sessionId: session.id } });
 }));
 
+router.post("/create-pro-checkout-session", verifyToken, asyncHandler(async (req, res) => {
+  await connectDb();
+  if (req.user.role !== "technician") return res.status(403).json({ success: false, message: "Only technicians can upgrade this plan." });
+  const user = await db.collection("users").findOne({ email: req.user.email, role: "technician" });
+  if (!user) return res.status(404).json({ success: false, message: "Technician account could not be found." });
+  if (user.plan === "pro") return res.status(409).json({ success: false, message: "Your FixMate Pro plan is already active." });
+  const stripe = getStripe();
+  const configuredClientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+  const clientUrl = configuredClientUrl.endsWith("/") ? configuredClientUrl.slice(0, -1) : configuredClientUrl;
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    payment_method_types: ["card"],
+    line_items: [{ price_data: { currency: "usd", product_data: { name: "FixMate Pro Technician Plan", description: "Unlimited service listings and a Verified Pro profile badge." }, unit_amount: 2900 }, quantity: 1 }],
+    success_url: clientUrl + "/dashboard/technician?plan_session_id={CHECKOUT_SESSION_ID}",
+    cancel_url: clientUrl + "/dashboard/technician?plan_cancelled=1",
+    metadata: { purchaseType: "technician_pro", technicianEmail: user.email, technicianId: String(user._id) }
+  }, { idempotencyKey: "fixmate-pro-" + String(user._id) });
+  res.json({ success: true, data: { url: session.url, sessionId: session.id } });
+}));
+
+router.get("/verify-pro", verifyToken, asyncHandler(async (req, res) => {
+  if (req.user.role !== "technician") return res.status(403).json({ success: false, message: "Only technicians can verify this plan." });
+  const sessionId = String(req.query.session_id || "");
+  if (!sessionId) return res.status(400).json({ success: false, message: "Stripe session_id is required." });
+  const session = await getStripe().checkout.sessions.retrieve(sessionId);
+  if (session.metadata?.technicianEmail?.toLowerCase() !== req.user.email.toLowerCase()) return res.status(403).json({ success: false, message: "This plan payment does not belong to your account." });
+  const payment = await fulfillTechnicianProPayment(session);
+  res.json({ success: true, data: { plan: "pro", payment } });
+}));
 router.get("/verify", verifyToken, verifyCustomer, asyncHandler(async (req, res) => {
   const sessionId = String(req.query.session_id || "");
   if (!sessionId) return res.status(400).json({ success: false, message: "Stripe session_id is required." });
