@@ -7,7 +7,7 @@ import { money } from "@/lib/api";
 export function ServiceCard({ service, compact = false }: { service: Service; compact?: boolean }) {
   return <article className={`service-card ${compact ? "service-card-compact" : ""}`}>
     <Link href={`/services/${service._id}`} className="service-image-wrap">
-      <Image src={service.image || "/images/repair-placeholder.svg"} alt={service.title} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized />
+      <Image src={service.image || "/images/repair-placeholder.svg"} alt={service.title} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" quality={85} />
       <span className="service-category">{service.category}</span>
       <span className="service-mode-chip"><Wrench size={12} /> {service.serviceMode}</span>
     </Link>
