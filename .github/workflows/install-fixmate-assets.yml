@@ -1,0 +1,55 @@
+name: Install FixMate high-resolution images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/install-fixmate-assets.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fixmate-image-install
+  cancel-in-progress: false
+
+jobs:
+  install-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download and install the 14 optimized photos
+        env:
+          ASSET_PACK_URL: "https://at.adobe.com/4mq8o0JY5sCZ0mQ4"
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 3 --retry-all-errors "$ASSET_PACK_URL" --output "$RUNNER_TEMP/fixmate-image-fix.zip"
+          mkdir -p "$RUNNER_TEMP/fixmate-image-fix"
+          unzip -q "$RUNNER_TEMP/fixmate-image-fix.zip" -d "$RUNNER_TEMP/fixmate-image-fix"
+          SOURCE="$RUNNER_TEMP/fixmate-image-fix/fixmate-image-fix/client/public/images"
+          TARGET="client/public/images"
+          test -d "$SOURCE"
+          COUNT="$(find "$SOURCE" -maxdepth 1 -type f -name '*.webp' | wc -l | tr -d ' ')"
+          test "$COUNT" = "14"
+          mkdir -p "$TARGET"
+          cp "$SOURCE"/*.webp "$TARGET"/
+          test "$(find "$TARGET" -maxdepth 1 -type f -name '*.webp' | wc -l | tr -d ' ')" -ge 14
+          echo "Installed $COUNT high-resolution WebP files."
+
+      - name: Commit image assets
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add client/public/images/*.webp
+          if git diff --cached --quiet; then
+            echo "The high-resolution photos are already present."
+            exit 0
+          fi
+          git commit -m "Replace low-resolution FixMate photos with high-resolution assets"
+          git push origin HEAD:main
