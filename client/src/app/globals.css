@@ -933,3 +933,11 @@ img { max-width: 100%; }
 .google-auth-button:hover:not(:disabled) { background: var(--surface-soft); border-color: color-mix(in srgb, var(--ink) 22%, var(--line)); }
 .google-auth-button:disabled { opacity: .65; cursor: wait; }
 .google-mark { display: inline-grid; place-items: center; width: 20px; height: 20px; color: #4285f4; font-family: Arial, sans-serif; font-size: 20px; font-weight: 900; line-height: 1; }
+
+.google-setup-note {
+  margin: 9px 0 0;
+  color: #9b6537;
+  font-size: 10px;
+  line-height: 1.55;
+}
+:root[data-theme="dark"] .google-setup-note { color: #e6b77d; }
