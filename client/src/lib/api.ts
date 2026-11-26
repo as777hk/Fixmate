@@ -2,7 +2,8 @@
 
 import { authClient } from "./auth-client";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+// Use the frontend first-party API proxy; Next.js rewrites /api/* to Express.
+const API_URL = "";
 
 export class ApiError extends Error {
   status: number;
