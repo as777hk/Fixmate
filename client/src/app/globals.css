@@ -1,6 +1,33 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
-:root { color-scheme: light; font-family: "Inter", sans-serif; }
-html { min-height: 100%; scroll-behavior: smooth; }
-body { min-height: 100vh; margin: 0; }
+:root {
+  color-scheme: light;
+  font-family: "Inter", sans-serif;
+  --fixmate-page-bg: #f8fafc;
+  --fixmate-text: #0f172a;
+}
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+  --fixmate-page-bg: #020617;
+  --fixmate-text: #f1f5f9;
+}
+body {
+  min-height: 100vh;
+  margin: 0;
+  color-scheme: inherit;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+html.dark body {
+  color-scheme: dark;
+}
 button, input, textarea, select { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+::selection { background: rgba(59, 130, 246, .22); }
