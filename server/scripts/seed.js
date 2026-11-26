@@ -65,7 +65,7 @@ const services = [
   { seedKey: "electrical-check", title: "Home Electrical Safety Check", category: "Electrical", description: "Outlet, switch, breaker and visible wiring inspection with safety-first recommendations and clear scope approval.", basePrice: 42, estimatedDuration: "2–3 hours", serviceMode: "Home Visit", serviceArea: "Gulshan, Dhaka", image: "/images/srv-107-electrical-db.webp" },
 ];
 
-export export async function runSeed() {
+export async function runSeed() {
   await connectDb();
   await ensureIndexes();
   const [admin, techOne, techTwo, customer] = await Promise.all([
