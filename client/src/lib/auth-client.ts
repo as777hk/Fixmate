@@ -4,7 +4,11 @@ import { createAuthClient } from "better-auth/react";
 import { jwtClient } from "better-auth/client/plugins";
 import type { UserProfile } from "@/types";
 
-const authBaseURL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+// Use the frontend origin so Better Auth cookies remain first-party.
+// Next.js rewrites /api/* to the Express API without changing the browser URL.
+const authBaseURL = typeof window !== "undefined"
+  ? window.location.origin
+  : (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 export const authClient = createAuthClient({
   baseURL: authBaseURL,
