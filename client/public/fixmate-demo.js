@@ -775,12 +775,12 @@
     // ============================================================================
 
     function routeFromBrowserLocation() {
-      const path = decodeURIComponent(window.location.pathname || '/').replace(/\\/+$/, '') || '/';
-      if (/^\\/services\\/[^/]+$/.test(path)) {
-        state.selectedServiceId = path.split('/').pop();
+      const segments = decodeURIComponent(window.location.pathname || '/').split('/').filter(Boolean);
+      if (segments.length === 2 && segments[0] === 'services') {
+        state.selectedServiceId = segments[1];
         return '/services/[id]';
       }
-      return path;
+      return segments.length ? '/' + segments.join('/') : '/';
     }
 
     function syncServiceQueryFromLocation() {
@@ -1058,7 +1058,8 @@
 
     // ----------------------------------------------------------------------------
     // 5.1 HOME PAGE (/)
-    // ----------------------------------------------------------------------------    function renderHomePage() {
+    // ----------------------------------------------------------------------------
+    function renderHomePage() {
       // Dynamic Featured Services: 6 latest where approvalStatus: 'approved' and isAvailable: true (.sort({ createdAt: -1 }).limit(6))
       const featured = state.services
         .filter(s => s.approvalStatus === 'approved' && s.isAvailable === true)
