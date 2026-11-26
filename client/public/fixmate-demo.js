@@ -732,10 +732,13 @@
         state.bookings = Array.isArray(bookings.data) ? bookings.data : [];
         state.payments = Array.isArray(payments.data) ? payments.data : [];
       } else if (role === 'technician') {
-        const [bookings, services] = await Promise.all([
+        const [bookings, services, stats] = await Promise.all([
           apiRequest('/bookings/technician'),
-          apiRequest('/services/my')
+          apiRequest('/services/my'),
+          apiRequest('/dashboard/technician-stats')
         ]);
+        state.technicianTotalEarnings = Number(stats.data?.totalEarnings || 0);
+        state.payments = [];
         const ownServices = Array.isArray(services.data) ? services.data : [];
         const byId = new Map(publicServices.map(item => [String(item._id), item]));
         ownServices.forEach(item => byId.set(String(item._id), item));
@@ -2491,7 +2494,9 @@
       const approvedCount = myServices.filter(s => s.approvalStatus === 'approved').length;
       const myRequests = state.bookings.filter(b => b.technicianEmail === u.email);
       const pendingReq = myRequests.filter(b => b.status === 'requested').length;
-      const totalEarnings = state.payments.filter(p => p.technicianEmail === u.email).reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const totalEarnings = authMode === 'api'
+        ? Number(state.technicianTotalEarnings || 0)
+        : state.payments.filter(p => p.technicianEmail === u.email).reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
       return `
         <!-- Reusable Stats Cards (Total Services, Approved Services, Pending Requests + Total Earnings) -->
