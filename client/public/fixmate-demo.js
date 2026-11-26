@@ -3935,6 +3935,17 @@
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-view-service');
           navigate('/services/[id]', { serviceId: id });
+          if (authMode !== 'preview') {
+            apiRequest('/services/' + encodeURIComponent(id), {}, false)
+              .then(result => {
+                const index = state.services.findIndex(item => String(item._id) === String(id));
+                if (index >= 0 && result.data) {
+                  state.services[index] = result.data;
+                  if (state.route === '/services/[id]' && String(state.selectedServiceId) === String(id)) renderApp();
+                }
+              })
+              .catch(error => console.warn('Service detail refresh:', error));
+          }
         });
       });
 
@@ -4667,6 +4678,42 @@
       syncHeaderAndTheme();
       state.route = routeFromBrowserLocation();
       syncServiceQueryFromLocation();
+      if (authMode === 'api' && state.route === '/services/[id]' && state.selectedServiceId) {
+        try {
+          const detail = await apiRequest('/services/' + encodeURIComponent(state.selectedServiceId), {}, false);
+          const index = state.services.findIndex(item => String(item._id) === String(state.selectedServiceId));
+          if (detail.data && index >= 0) state.services[index] = detail.data;
+        } catch (error) { console.warn('FixMate service detail:', error); }
+      }
+      if (authMode === 'api' && state.route === '/payment/success') {
+        const sessionId = new URLSearchParams(window.location.search).get('session_id');
+        if (sessionId) {
+          try {
+            await apiRequest('/payments/verify?session_id=' + encodeURIComponent(sessionId));
+            await refreshApiWorkspace();
+            showToast('Stripe confirmed your payment and updated the booking.', 'success');
+          } catch (error) {
+            showToast(error.message || 'Payment verification could not be completed.', 'error');
+          } finally {
+            window.history.replaceState({}, '', '/payment/success');
+          }
+        }
+      }
+      if (authMode === 'api' && state.route.startsWith('/dashboard') && state.currentUser && state.currentUser.role === 'technician') {
+        const planSessionId = new URLSearchParams(window.location.search).get('plan_session_id');
+        if (planSessionId) {
+          try {
+            await apiRequest('/payments/verify-pro?session_id=' + encodeURIComponent(planSessionId));
+            await restoreApiSession();
+            await refreshApiWorkspace();
+            showToast('FixMate Pro payment verified. Your plan is active.', 'success');
+          } catch (error) {
+            showToast(error.message || 'Pro plan verification could not be completed.', 'error');
+          } finally {
+            window.history.replaceState({}, '', state.route);
+          }
+        }
+      }
       if ((state.route.startsWith('/dashboard') || state.route.startsWith('/payment')) && !state.currentUser) {
         state.redirectAfterLogin = state.route;
         state.route = '/sign-in';
@@ -4731,9 +4778,7 @@
       document.getElementById('dropBtnSignOut')?.addEventListener('click', async () => {
         dropMenu?.classList.add('hidden');
         try {
-          if (authMode === 'api') {
-            await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
-          }
+          await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
         } catch (error) {
           console.warn('FixMate sign-out request:', error);
         }
@@ -4746,7 +4791,10 @@
       });
 
       // Top Examiner Role Switcher Bar
-      const switchRoleByEmail = (email) => {
+      const switchRoleByEmail = async (email) => {
+        if (authMode === 'api') {
+          try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
+        }
         const u = state.users.find(x => x.email === email);
         if (!u) return;
         authMode = 'preview';
@@ -4766,9 +4814,7 @@
       document.getElementById('quickRoleTech2')?.addEventListener('click', () => switchRoleByEmail('tanvir.tech@fixmate.com'));
       document.getElementById('quickRoleAdmin')?.addEventListener('click', () => switchRoleByEmail('admin@fixmate.com'));
       document.getElementById('quickRoleGuest')?.addEventListener('click', async () => {
-        if (authMode === 'api') {
-          try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
-        }
+        try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
         authMode = 'none';
         activeApiToken = '';
         state.currentUser = null;
