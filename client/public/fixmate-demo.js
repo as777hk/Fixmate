@@ -3819,7 +3819,9 @@
           estimatedDuration: document.getElementById('editSrvDur').value.trim(),
           description: document.getElementById('editSrvDesc').value.trim(),
           serviceArea: srv.serviceArea,
-          image: srv.image
+          // Existing seeded service images may use same-origin /images paths.
+          // Omit image on edit unless an uploaded HTTPS image exists.
+          ...(srv.image && /^https:\/\//i.test(srv.image) ? { image: srv.image } : {})
         };
         if (authMode === 'api') {
           apiRequest('/services/' + encodeURIComponent(srv._id), { method: 'PATCH', body: JSON.stringify(editPayload) })
