@@ -3806,6 +3806,22 @@
       document.getElementById('editSrvCancelBtn')?.addEventListener('click', closeModal);
       document.getElementById('editServiceModalForm')?.addEventListener('submit', e => {
         e.preventDefault();
+        const editPayload = {
+          title: document.getElementById('editSrvTitle').value.trim(),
+          category: document.getElementById('editSrvCat').value,
+          basePrice: Number(document.getElementById('editSrvPrice').value),
+          serviceMode: document.getElementById('editSrvMode').value,
+          estimatedDuration: document.getElementById('editSrvDur').value.trim(),
+          description: document.getElementById('editSrvDesc').value.trim(),
+          serviceArea: srv.serviceArea,
+          image: srv.image
+        };
+        if (authMode === 'api') {
+          apiRequest('/services/' + encodeURIComponent(srv._id), { method: 'PATCH', body: JSON.stringify(editPayload) })
+            .then(async () => { await refreshApiWorkspace(); closeModal(); showToast('Service updated and sent for admin approval.', 'info'); renderApp(); })
+            .catch(error => showToast(error.message || 'Unable to update this service.', 'error'));
+          return;
+        }
         srv.title = document.getElementById('editSrvTitle').value.trim();
         srv.category = document.getElementById('editSrvCat').value;
         srv.basePrice = Number(document.getElementById('editSrvPrice').value);
@@ -4175,6 +4191,12 @@
             confirmText: 'Yes, Cancel Booking',
             danger: true,
             onConfirm: () => {
+              if (authMode === 'api') {
+                apiRequest('/bookings/' + encodeURIComponent(id) + '/cancel', { method: 'PATCH' })
+                  .then(async () => { await refreshApiWorkspace(); showToast('Repair request cancelled.', 'info'); renderApp(); })
+                  .catch(error => showToast(error.message || 'Unable to cancel this request.', 'error'));
+                return;
+              }
               bkg.status = 'cancelled';
               bkg.statusHistory = bkg.statusHistory || [];
               bkg.statusHistory.push({ status: 'cancelled', changedAt: new Date().toISOString() });
@@ -4219,6 +4241,15 @@
       const handleProUpgrade = () => {
         const u = state.currentUser;
         if (!u || u.role !== 'technician') return;
+        if (authMode === 'api') {
+          apiRequest('/payments/create-pro-checkout-session', { method: 'POST', body: JSON.stringify({}) })
+            .then(result => {
+              if (!result.data || !result.data.url) throw new Error('Stripe did not return a checkout URL.');
+              window.location.assign(result.data.url);
+            })
+            .catch(error => showToast(error.message || 'FixMate Pro checkout is unavailable.', 'error'));
+          return;
+        }
         u.plan = 'pro';
         const dbUser = state.users.find(x => x.email === u.email);
         if (dbUser) dbUser.plan = 'pro';
@@ -4262,6 +4293,26 @@
           return;
         }
 
+        if (authMode === 'api') {
+          (async () => {
+            try {
+              if (!fileInput || !fileInput.files || !fileInput.files[0]) throw new Error('Choose a JPG, PNG or WEBP service image to upload.');
+              if (description.length < 30) throw new Error('Service description must be at least 30 characters.');
+              const imageUrl = await uploadApiImage(fileInput.files[0]);
+              await apiRequest('/services', {
+                method: 'POST',
+                body: JSON.stringify({ title, category, basePrice, estimatedDuration, serviceMode, serviceArea, description, image: imageUrl })
+              });
+              await refreshApiWorkspace();
+              showToast('Service submitted. It will appear publicly after admin approval.', 'success');
+              navigate('/dashboard/technician/my-services');
+            } catch (error) {
+              showToast(error.message || 'Unable to submit this service.', 'error');
+            }
+          })();
+          return;
+        }
+
         const createServiceRecord = (imgUrl) => {
           const newSrv = {
             _id: 'srv_' + Math.floor(1000 + Math.random() * 9000),
@@ -4301,6 +4352,13 @@
           const id = btn.getAttribute('data-toggle-avail');
           const srv = state.services.find(s => s._id === id);
           if (!srv) return;
+          if (authMode === 'api') {
+            const nextAvailability = !srv.isAvailable;
+            apiRequest('/services/' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify({ isAvailable: nextAvailability }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('Service availability updated.', 'info'); renderApp(); })
+              .catch(error => showToast(error.message || 'Unable to update availability.', 'error'));
+            return;
+          }
           srv.isAvailable = !srv.isAvailable;
           saveState();
           showToast(`Service availability switched ${srv.isAvailable ? 'ON (Visible publicly)' : 'OFF (Hidden from public pages)'}`, 'info');
@@ -4327,6 +4385,12 @@
             confirmText: 'Delete Service',
             danger: true,
             onConfirm: () => {
+              if (authMode === 'api') {
+                apiRequest('/services/' + encodeURIComponent(id), { method: 'DELETE' })
+                  .then(async () => { await refreshApiWorkspace(); showToast('Service deleted.', 'info'); renderApp(); })
+                  .catch(error => showToast(error.message || 'Unable to delete this service.', 'error'));
+                return;
+              }
               state.services = state.services.filter(s => s._id !== id);
               saveState();
               showToast('Service deleted.', 'info');
@@ -4518,6 +4582,25 @@
         const newBio = document.getElementById('profBio').value.trim();
         const prevImg = document.getElementById('profilePreviewImg')?.src || u.image;
 
+        if (authMode === 'api') {
+          (async () => {
+            try {
+              let imageUrl = u.image || '';
+              if (profPhotoIn && profPhotoIn.files && profPhotoIn.files[0]) imageUrl = await uploadApiImage(profPhotoIn.files[0]);
+              await apiRequest('/users/profile', {
+                method: 'PATCH',
+                body: JSON.stringify({ name: newName, phone: newPhone, area: newArea, bio: newBio, image: imageUrl })
+              });
+              u.name = newName; u.phone = newPhone; u.area = newArea; u.bio = newBio; u.image = imageUrl;
+              await refreshApiWorkspace();
+              showToast('Your profile has been updated.', 'success');
+              renderApp();
+            } catch (error) {
+              showToast(error.message || 'Unable to update your profile.', 'error');
+            }
+          })();
+          return;
+        }
         u.name = newName;
         u.phone = newPhone;
         u.area = newArea;
