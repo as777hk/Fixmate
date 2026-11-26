@@ -775,9 +775,10 @@
     // ============================================================================
 
     function routeFromBrowserLocation() {
-      const path = decodeURIComponent(window.location.pathname || '/').replace(/\\/+$/, '') || '/';
-      if (/^\\/services\\/[^/]+$/.test(path)) {
-        state.selectedServiceId = path.split('/').pop();
+      const path = decodeURIComponent(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      const segments = path.split('/').filter(Boolean);
+      if (segments.length === 2 && segments[0] === 'services') {
+        state.selectedServiceId = segments[1];
         return '/services/[id]';
       }
       return path;
