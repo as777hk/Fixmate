@@ -3845,7 +3845,7 @@
       openModal(`
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <span class="text-[10px] uppercase text-emerald-600 font-bold">Quick Testing</span>
+            <span class="text-[10px] uppercase text-emerald-600 font-bold">Live Access Information</span>
             <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Test Logins Details</h3>
           </div>
           <button type="button" id="codeModalCloseBtn" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">✕</button>
@@ -3853,10 +3853,10 @@
 
         <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300 max-h-[65vh] overflow-y-auto pr-1 custom-scrollbar">
           <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800">
-            <p class="font-bold text-blue-900 dark:text-blue-200 mb-1">Recommended Vercel Domain Names:</p>
+            <p class="font-bold text-blue-900 dark:text-blue-200 mb-1">Live Production Endpoints</p>
             <ul class="font-mono text-[11px] space-y-1 text-blue-700 dark:text-blue-300">
-              <li>• Primary Client: <strong>as-fixmate.vercel.app</strong> (or <strong>as-fixmate-bd.vercel.app</strong>)</li>
-              <li>• Express Server: <strong>as-fixmate-api.vercel.app</strong></li>
+              <li>• Client: <strong>as-fixmate.vercel.app</strong></li>
+              <li>• API: <strong>as-fixmate-api.vercel.app</strong></li>
             </ul>
           </div>
 
