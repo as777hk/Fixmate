@@ -1846,11 +1846,11 @@
             <form id="signInForm" class="space-y-4">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1.5">Email Address</label>
-                <input id="loginEmail" type="email" required value="nadia@fixmate.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-500" placeholder="you@fixmate.com" />
+                <input id="loginEmail" type="email" required autocomplete="username" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-500" placeholder="you@fixmate.com" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-300 mb-1.5">Password</label>
-                <input id="loginPassword" type="password" required value="Password123" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-500" placeholder="••••••••" />
+                <input id="loginPassword" type="password" required autocomplete="current-password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-500" placeholder="••••••••" />
               </div>
               <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-600/20 transition-all">
                 Sign In →
@@ -1863,17 +1863,15 @@
               <div class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
             </div>
 
-            <button id="btnGoogleLogin" type="button" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold flex items-center justify-center gap-2.5">
-              <span class="text-base">G</span>
-              <span>Continue with Google (Customer Role)</span>
-            </button>
+            ${window.FIXMATE_GOOGLE_AUTH_ENABLED ? '<button id="btnGoogleLogin" type="button" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold flex items-center justify-center gap-2.5"><span class="text-base">G</span><span>Continue with Google</span></button>' : '<div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">Google sign-in is not configured for this deployment yet.</div>'}
 
             <!-- Demo Quick Fill Credentials -->
             <div class="mt-6 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 text-xs space-y-1.5">
-              <p class="font-bold text-slate-700 dark:text-slate-200">Quick Test Accounts (Password: <code>Password123</code>):</p>
+              <p class="font-bold text-slate-700 dark:text-slate-200">Production test accounts · select to fill email only</p>
               <div class="flex flex-wrap gap-1.5 pt-1">
-                <button type="button" data-fill-email="nadia@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-mono text-[11px]">Customer</button>
-                <button type="button" data-fill-email="rafiq.tech@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono text-[11px]">Technician (Pro)</button>
+                <button type="button" data-fill-email="samira@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-mono text-[11px]">Customer</button>
+                <button type="button" data-fill-email="ariyan.tech@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-mono text-[11px]">Technician (Pro)</button>
+                <button type="button" data-fill-email="nusrat.tech@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono text-[11px]">Technician (Free)</button>
                 <button type="button" data-fill-email="admin@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 font-mono text-[11px]">Admin</button>
               </div>
             </div>
@@ -3757,7 +3755,7 @@
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
             <span class="text-[10px] uppercase text-emerald-600 font-bold">Quick Testing</span>
-            <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Demo Account Credentials</h3>
+            <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Test Logins Details</h3>
           </div>
           <button type="button" id="codeModalCloseBtn" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">✕</button>
         </div>
@@ -3771,19 +3769,37 @@
             </ul>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1.5">
-            <p class="font-bold text-slate-900 dark:text-white">Submission Test Credentials (Ready in Seed Script):</p>
-            <p class="font-mono text-[11px]">• Admin: <strong>admin@fixmate.com</strong> / <strong>Password123</strong></p>
-            <p class="font-mono text-[11px]">• Technician (Pro): <strong>rafiq.tech@fixmate.com</strong> / <strong>Password123</strong></p>
-            <p class="font-mono text-[11px]">• Technician (Free): <strong>tanvir.tech@fixmate.com</strong> / <strong>Password123</strong></p>
-            <p class="font-mono text-[11px]">• Customer: <strong>nadia@fixmate.com</strong> / <strong>Password123</strong></p>
+          <div class="rounded-2xl border-2 border-amber-300 dark:border-amber-500/70 bg-gradient-to-br from-amber-50 via-yellow-50 to-white dark:from-amber-950/70 dark:via-slate-900 dark:to-slate-950 p-4 shadow-xl shadow-amber-500/15 ring-2 ring-amber-200/60 dark:ring-amber-500/20 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-display text-sm font-extrabold text-amber-950 dark:text-amber-200">LIVE PRODUCTION TEST ACCOUNTS</p>
+              <span class="rounded-full bg-amber-400 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-950">Verified list</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div class="rounded-xl border border-violet-200 dark:border-violet-800 bg-white/90 dark:bg-violet-950/30 p-3">
+                <span class="text-[10px] font-black uppercase tracking-wider text-violet-700 dark:text-violet-300">Admin</span>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">admin@fixmate.com</p>
+              </div>
+              <div class="rounded-xl border border-blue-200 dark:border-blue-800 bg-white/90 dark:bg-blue-950/30 p-3">
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300">Customer</span>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">samira@fixmate.com</p>
+              </div>
+              <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white/90 dark:bg-emerald-950/30 p-3">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Technician · Pro</span>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">ariyan.tech@fixmate.com</p>
+              </div>
+              <div class="rounded-xl border border-orange-200 dark:border-orange-800 bg-white/90 dark:bg-orange-950/30 p-3">
+                <span class="text-[10px] font-black uppercase tracking-wider text-orange-700 dark:text-orange-300">Technician · Free</span>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">nusrat.tech@fixmate.com</p>
+              </div>
+            </div>
+            <p class="rounded-lg bg-amber-100/80 dark:bg-amber-900/40 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-950 dark:text-amber-100">Passwords are deliberately not displayed in this public demo panel. Production account passwords are stored securely in Vercel environment variables and must be provided only to authorized testers by the project owner.</p>
           </div>
 
           <div class="p-3.5 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] space-y-1">
-            <p class="text-emerald-400 font-bold"># Complete Full-Stack Zip Bundle Attached in Chat:</p>
-            <p>1. fixmate-client/ (Next.js App Router, BetterAuth, Tailwind, Middleware)</p>
-            <p>2. fixmate-server/ (Express.js, MongoDB 4 Collections, JWT, Stripe, Seed)</p>
-            <p>3. README.md (Complete submission documentation)</p>
+            <p class="text-emerald-400 font-bold">LIVE APPLICATION STACK</p>
+            <p>Frontend: Next.js App Router</p>
+            <p>API: Express.js · MongoDB · Better Auth</p>
+            <p>Payments: Stripe Checkout (requires active secret key)</p>
           </div>
         </div>
       `);
