@@ -1,5 +1,5 @@
 
-    // Supplied image payloads are stored as separate assets under /public/images.
+    // Image payloads from the supplied demo are stored as separate public assets.
     const HERO_IMG = '/images/fixmate-hero.jpg';
     const TECH_WORK_IMG = '/images/technician-work.jpg';
     const HOME_APPLIANCE_IMG = '/images/home-appliance.jpg';
@@ -513,8 +513,7 @@
           problemDescription: 'MacBook Pro 16 M2 Max not charging on either MagSafe 3 or Thunderbolt port after power surge.',
           status: 'accepted',
           finalAmount: 95,
-          paymentStatus: 'unpaid',
-          rating: null,
+          paymentStatus: 'unpaid',          rating: null,
           review: '',
           statusHistory: [
             { status: 'requested', changedAt: '2026-11-18T11:20:00Z' },
@@ -774,12 +773,11 @@
     // ============================================================================
     // 3. ROUTING & ROLE GUARD ENGINE
     // ============================================================================
+
     function routeFromBrowserLocation() {
-      const rawPath = decodeURIComponent(window.location.pathname || '/');
-      const segments = rawPath.split('/').filter(Boolean);
-      const path = segments.length ? '/' + segments.join('/') : '/';
-      if (segments.length === 2 && segments[0] === 'services') {
-        state.selectedServiceId = segments[1];
+      const path = decodeURIComponent(window.location.pathname || '/').replace(/\\/+$/, '') || '/';
+      if (/^\\/services\\/[^/]+$/.test(path)) {
+        state.selectedServiceId = path.split('/').pop();
         return '/services/[id]';
       }
       return path;
@@ -1060,8 +1058,7 @@
 
     // ----------------------------------------------------------------------------
     // 5.1 HOME PAGE (/)
-    // ----------------------------------------------------------------------------
-    function renderHomePage() {
+    // ----------------------------------------------------------------------------    function renderHomePage() {
       // Dynamic Featured Services: 6 latest where approvalStatus: 'approved' and isAvailable: true (.sort({ createdAt: -1 }).limit(6))
       const featured = state.services
         .filter(s => s.approvalStatus === 'approved' && s.isAvailable === true)
@@ -1560,8 +1557,7 @@
                       <p class="text-2xl font-display font-extrabold text-blue-600 dark:text-blue-400">$${Number(srv.basePrice).toFixed(2)} <span class="text-xs font-normal text-slate-400">USD</span></p>
                     </div>
                     <div>
-                      <p class="text-[11px] text-slate-400 uppercase font-semibold">Estimated Turnaround</p>
-                      <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1">${escapeHtml(srv.estimatedDuration)}</p>
+                      <p class="text-[11px] text-slate-400 uppercase font-semibold">Estimated Turnaround</p>                      <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1">${escapeHtml(srv.estimatedDuration)}</p>
                     </div>
                     <div>
                       <p class="text-[11px] text-slate-400 uppercase font-semibold">Payment Policy</p>
@@ -2060,8 +2056,7 @@
                   <span>🏠</span>
                   <span>Back to Public Home</span>
                 </button>
-              </div>
-            </div>
+              </div>            </div>
           </aside>
 
           <!-- Main Dashboard Content Column -->
@@ -2560,8 +2555,7 @@
             <div>
               <h2 class="font-display font-bold text-xl text-slate-900 dark:text-white">My Services (${myServices.length})</h2>
               <p class="text-xs text-slate-500">Edit, pause, or remove your listings. Edited services go back to pending for quick review.</p>
-            </div>
-            <button type="button" data-dash-nav="/dashboard/technician/add-service" class="dash-nav-btn px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold">
+            </div>            <button type="button" data-dash-nav="/dashboard/technician/add-service" class="dash-nav-btn px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold">
               + Add New Service
             </button>
           </div>
@@ -3060,8 +3054,7 @@
     // ============================================================================
     // 7. CHARTS INITIALIZATION FOR DASHBOARD OVERVIEWS
     // ============================================================================
-    function initDashboardCharts() {
-      destroyCharts();
+    function initDashboardCharts() {      destroyCharts();
       const textColor = state.theme === 'dark' ? '#cbd5e1' : '#475569';
 
       const custCanvas = document.getElementById('customerOverviewChart');
@@ -3560,8 +3553,7 @@
           return;
         }
         bkg.rating = stars;
-        bkg.review = rev;
-        // Recalculate service rating average
+        bkg.review = rev;        // Recalculate service rating average
         const srv = state.services.find(s => s._id === bkg.serviceId);
         if (srv) {
           srv.ratingCount = (srv.ratingCount || 1) + 1;
@@ -4060,8 +4052,7 @@
             isAvailable: true,
             ratingAvg: 0,
             ratingCount: 0,
-            createdAt: new Date().toISOString()
-          };
+            createdAt: new Date().toISOString()          };
           state.services.unshift(newSrv);
           saveState();
           showToast('Service uploaded via ImgBB and waiting for admin approval!', 'success');

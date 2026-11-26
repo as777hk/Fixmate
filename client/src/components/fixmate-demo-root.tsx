@@ -78,10 +78,12 @@ export function FixMateDemoRoot() {
         if (disposed || !mountRef.current) return;
         mountRef.current.innerHTML = shell;
 
-        await loadScript("https://cdn.tailwindcss.com/3.4.17", "fixmate-tailwind-cdn");
-        if (disposed) return;
+        // Tailwind's Play CDN reads its config when the script initializes.
+        // Define the complete config before loading the CDN script.
         window.tailwind = window.tailwind || {};
         window.tailwind.config = TAILWIND_CONFIG;
+        await loadScript("https://cdn.tailwindcss.com/3.4.17", "fixmate-tailwind-cdn");
+        if (disposed) return;
 
         await loadScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js", "fixmate-chartjs");
         if (disposed) return;
