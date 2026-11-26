@@ -3968,28 +3968,58 @@
       document.getElementById('goToSignUpLink')?.addEventListener('click', () => navigate('/sign-up'));
       document.getElementById('goToSignInLink')?.addEventListener('click', () => navigate('/sign-in'));
 
-      document.getElementById('signInForm')?.addEventListener('submit', e => {
+      document.getElementById('signInForm')?.addEventListener('submit', async e => {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-        const user = state.users.find(u => u.email.toLowerCase() === email);
-        if (!user) {
-          showToast('Invalid email or password. Try one of the quick test accounts.', 'error');
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) {
+          showToast('Enter your email address and password.', 'error');
           return;
         }
-        state.currentUser = user;
-        saveState();
-        showToast(`Signed in as ${user.name} (${user.role})`, 'success');
-        const target = state.redirectAfterLogin || getRoleDashboardRoute(user);
-        state.redirectAfterLogin = null;
-        navigate(target);
+        const submit = e.currentTarget.querySelector('button[type="submit"]');
+        if (submit) { submit.disabled = true; submit.textContent = 'Signing in securely…'; }
+        try {
+          const response = await fetch('/api/auth/sign-in/email', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, callbackURL: window.location.origin })
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.message || 'Email or password was not accepted.');
+          const restored = await restoreApiSession();
+          if (!restored) throw new Error('Sign-in succeeded, but the secure session could not be loaded. Please try again.');
+          try { await refreshApiWorkspace(); }
+          catch (loadError) { console.error('FixMate workspace refresh:', loadError); }
+          showToast('Signed in securely as ' + state.currentUser.name + '.', 'success');
+          const target = state.redirectAfterLogin || getRoleDashboardRoute(state.currentUser);
+          state.redirectAfterLogin = null;
+          navigate(target);
+        } catch (error) {
+          showToast(error.message || 'Unable to sign in. Please try again.', 'error');
+        } finally {
+          if (submit) { submit.disabled = false; submit.textContent = 'Sign In →'; }
+        }
       });
 
-      document.getElementById('btnGoogleLogin')?.addEventListener('click', () => {
-        const cust = state.users.find(u => u.role === 'customer') || state.users[0];
-        state.currentUser = cust;
-        saveState();
-        showToast(`Google Social Login successful! Assigned default 'customer' role.`, 'success');
-        navigate(getRoleDashboardRoute(cust));
+      document.getElementById('btnGoogleLogin')?.addEventListener('click', async () => {
+        if (window.FIXMATE_GOOGLE_AUTH_ENABLED !== true) {
+          showToast('Google sign-in is not configured for this deployment.', 'warning');
+          return;
+        }
+        try {
+          const response = await fetch('/api/auth/sign-in/social', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider: 'google', callbackURL: window.location.origin })
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || !payload.url) throw new Error(payload.message || 'Google sign-in could not be started.');
+          window.location.assign(payload.url);
+        } catch (error) {
+          showToast(error.message || 'Google sign-in could not be started.', 'error');
+        }
       });
 
       // Sign Up Page with real-time Password Validation
@@ -4012,46 +4042,43 @@
         });
       }
 
-      document.getElementById('signUpForm')?.addEventListener('submit', e => {
+      document.getElementById('signUpForm')?.addEventListener('submit', async e => {
         e.preventDefault();
         const name = document.getElementById('regName').value.trim();
         const email = document.getElementById('regEmail').value.trim().toLowerCase();
-        const pw = document.getElementById('regPassword').value;
+        const password = document.getElementById('regPassword').value;
         const roleInput = document.querySelector('input[name="regRole"]:checked')?.value || 'customer';
-        // Server validation: if anything other than 'customer' or 'technician' is sent, save 'customer' (PDF Page 8)
-        const safeRole = (roleInput === 'technician' || roleInput === 'customer') ? roleInput : 'customer';
-
+        const safeRole = roleInput === 'technician' ? 'technician' : 'customer';
         if (!name || !email) {
-          showToast('Full Name and valid Email are required.', 'error');
+          showToast('Full Name and a valid Email are required.', 'error');
           return;
         }
-        if (pw.length < 6 || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw)) {
-          showToast('Password must be 6+ chars with at least 1 uppercase and 1 lowercase letter.', 'error');
+        if (password.length < 6 || !/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+          showToast('Password must be 6+ characters and include uppercase and lowercase letters.', 'error');
           return;
         }
-        if (state.users.some(u => u.email.toLowerCase() === email)) {
-          showToast('Account creation failed: Email already exists!', 'error');
-          return;
+        const submit = e.currentTarget.querySelector('button[type="submit"]');
+        if (submit) { submit.disabled = true; submit.textContent = 'Creating secure account…'; }
+        try {
+          const response = await fetch('/api/auth/sign-up/email', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, role: safeRole, callbackURL: window.location.origin })
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.message || 'Account creation failed.');
+          const restored = await restoreApiSession();
+          if (!restored) throw new Error('Your account was created, but the secure session could not be started. Please sign in.');
+          try { await refreshApiWorkspace(); }
+          catch (loadError) { console.error('FixMate workspace refresh:', loadError); }
+          showToast('Your FixMate ' + safeRole + ' account is ready.', 'success');
+          navigate(getRoleDashboardRoute(state.currentUser));
+        } catch (error) {
+          showToast(error.message || 'Unable to create your account.', 'error');
+        } finally {
+          if (submit) { submit.disabled = false; submit.textContent = 'Create Account & Go to Dashboard →'; }
         }
-
-        const newUser = {
-          _id: 'usr_' + Math.floor(1000 + Math.random() * 9000),
-          name,
-          email,
-          password: pw,
-          image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=240&q=80',
-          role: safeRole,
-          phone: '+880 1700-000000',
-          area: 'Dhaka, Bangladesh',
-          bio: `FixMate verified ${safeRole}.`,
-          plan: 'free',
-          createdAt: new Date().toISOString()
-        };
-        state.users.push(newUser);
-        state.currentUser = newUser;
-        saveState();
-        showToast(`Account created as ${safeRole}! Redirecting to dashboard...`, 'success');
-        navigate(getRoleDashboardRoute(newUser));
       });
 
       // Dashboard Sidebar Navigation
@@ -4428,10 +4455,27 @@
     // ============================================================================
     // 10. GLOBAL HEADER, FOOTER & QUICK BAR LISTENERS
     // ============================================================================
-    function bootFixMateDemo() {
+    async function bootFixMateDemo() {
       if (window.__FIXMATE_DEMO_BOOTED__) return;
       window.__FIXMATE_DEMO_BOOTED__ = true;
       loadState();
+      // Old demo sessions must never masquerade as real production authentication.
+      state.currentUser = null;
+      activeApiToken = '';
+      authMode = 'none';
+      try { await restoreApiSession(); }
+      catch (error) { console.warn('FixMate session restore:', error); }
+      try {
+        const publicCatalogue = await apiRequest('/services?limit=48', {}, false);
+        if (Array.isArray(publicCatalogue.data)) state.services = publicCatalogue.data;
+      } catch (error) {
+        console.warn('FixMate public service catalogue:', error);
+      }
+      if (authMode === 'api') {
+        try { await refreshApiWorkspace(); }
+        catch (error) { console.error('FixMate live workspace data:', error); }
+      }
+      syncHeaderAndTheme();
       state.route = routeFromBrowserLocation();
       syncServiceQueryFromLocation();
       if ((state.route.startsWith('/dashboard') || state.route.startsWith('/payment')) && !state.currentUser) {
@@ -4495,8 +4539,17 @@
         dropMenu?.classList.add('hidden');
         navigate('/dashboard/profile');
       });
-      document.getElementById('dropBtnSignOut')?.addEventListener('click', () => {
+      document.getElementById('dropBtnSignOut')?.addEventListener('click', async () => {
         dropMenu?.classList.add('hidden');
+        try {
+          if (authMode === 'api') {
+            await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' });
+          }
+        } catch (error) {
+          console.warn('FixMate sign-out request:', error);
+        }
+        activeApiToken = '';
+        authMode = 'none';
         state.currentUser = null;
         saveState();
         showToast('Signed out successfully.', 'info');
@@ -4507,6 +4560,8 @@
       const switchRoleByEmail = (email) => {
         const u = state.users.find(x => x.email === email);
         if (!u) return;
+        authMode = 'preview';
+        activeApiToken = '';
         state.currentUser = u;
         saveState();
         showToast(`Switched session to ${u.name} (${u.role.toUpperCase()})`, 'info');
@@ -4521,7 +4576,12 @@
       document.getElementById('quickRoleTech')?.addEventListener('click', () => switchRoleByEmail('rafiq.tech@fixmate.com'));
       document.getElementById('quickRoleTech2')?.addEventListener('click', () => switchRoleByEmail('tanvir.tech@fixmate.com'));
       document.getElementById('quickRoleAdmin')?.addEventListener('click', () => switchRoleByEmail('admin@fixmate.com'));
-      document.getElementById('quickRoleGuest')?.addEventListener('click', () => {
+      document.getElementById('quickRoleGuest')?.addEventListener('click', async () => {
+        if (authMode === 'api') {
+          try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
+        }
+        authMode = 'none';
+        activeApiToken = '';
         state.currentUser = null;
         saveState();
         showToast('Switched to Logged-Out Visitor state', 'warning');
