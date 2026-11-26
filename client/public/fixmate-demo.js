@@ -3717,8 +3717,8 @@
         e.preventDefault();
         const stars = Number(document.getElementById('rateStarsInput').value);
         const rev = document.getElementById('rateReviewInput').value.trim();
-        if (!rev) {
-          showToast('Please write a short review.', 'error');
+        if (rev.length < 8 || rev.length > 600) {
+          showToast('Your review must contain 8 to 600 characters.', 'error');
           return;
         }
         if (authMode === 'api') {
