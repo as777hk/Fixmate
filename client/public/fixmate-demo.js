@@ -52,18 +52,7 @@
       adminUserFilter: 'All',
       adminServiceFilter: 'All',
       adminBookingFilter: 'All',
-      currentUser: {
-        _id: 'usr_cust_1',
-        name: 'Nadia Islam',
-        email: 'nadia@fixmate.com',
-        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80',
-        role: 'customer',
-        phone: '+880 1712-558899',
-        area: 'Dhanmondi, Dhaka',
-        bio: 'Product Designer living in Dhanmondi. Values punctual home appliance and Apple device care.',
-        plan: 'free',
-        createdAt: '2026-08-12T09:15:00Z'
-      },
+      currentUser: null,
       // 1. users collection (3+ realistic stakeholders + extra technicians/customers)
       users: [
         {
@@ -638,9 +627,14 @@
       heroTicketTimer = setInterval(applyStage, 1700);
     }
 
+    let activeApiToken = '';
+    let authMode = 'none';
+
     function saveState() {
       try {
-        localStorage.setItem('fixmate_v3_state', JSON.stringify(state));
+        const snapshot = { ...state, currentUser: authMode === 'preview' ? state.currentUser : null };
+        localStorage.setItem('fixmate_v3_state', JSON.stringify(snapshot));
+        localStorage.setItem('fixmate_theme', state.theme);
       } catch (e) {}
     }
 
@@ -653,7 +647,121 @@
             state = parsed;
           }
         }
+        const savedTheme = localStorage.getItem('fixmate_theme');
+        if (savedTheme === 'dark' || savedTheme === 'light') state.theme = savedTheme;
       } catch (e) {}
+    }
+
+    async function getApiToken(forceRefresh = false) {
+      if (activeApiToken && !forceRefresh) return activeApiToken;
+      const response = await fetch('/api/auth/token', { method: 'GET', credentials: 'include', cache: 'no-store' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.token) {
+        activeApiToken = '';
+        throw new Error(payload.message || 'Your secure session has expired. Please sign in again.');
+      }
+      activeApiToken = payload.token;
+      return activeApiToken;
+    }
+
+    async function apiRequest(path, options = {}, requiresAuth = true) {
+      const requestOptions = { ...options };
+      const headers = new Headers(requestOptions.headers || {});
+      const isFormData = typeof FormData !== 'undefined' && requestOptions.body instanceof FormData;
+      if (requestOptions.body && !isFormData && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+      if (requiresAuth) headers.set('Authorization', 'Bearer ' + await getApiToken());
+      let response = await fetch('/api' + (path.startsWith('/') ? path : '/' + path), {
+        ...requestOptions, headers, credentials: 'include', cache: 'no-store'
+      });
+      if (response.status === 401 && requiresAuth) {
+        activeApiToken = '';
+        headers.set('Authorization', 'Bearer ' + await getApiToken(true));
+        response = await fetch('/api' + (path.startsWith('/') ? path : '/' + path), {
+          ...requestOptions, headers, credentials: 'include', cache: 'no-store'
+        });
+      }
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || 'FixMate request failed (' + response.status + ').');
+      return payload;
+    }
+
+    async function restoreApiSession() {
+      const response = await fetch('/api/auth/get-session', { method: 'GET', credentials: 'include', cache: 'no-store' });
+      if (!response.ok) {
+        activeApiToken = '';
+        authMode = 'none';
+        return false;
+      }
+      const payload = await response.json().catch(() => null);
+      const user = payload && payload.user;
+      if (!user || !user.id) {
+        activeApiToken = '';
+        authMode = 'none';
+        return false;
+      }
+      const profile = {
+        _id: String(user.id),
+        id: String(user.id),
+        name: user.name || 'FixMate member',
+        email: String(user.email || '').toLowerCase(),
+        image: user.image || '',
+        role: ['customer', 'technician', 'admin'].includes(user.role) ? user.role : 'customer',
+        phone: user.phone || '',
+        area: user.area || '',
+        bio: user.bio || '',
+        plan: user.plan === 'pro' ? 'pro' : 'free',
+        createdAt: user.createdAt || new Date().toISOString()
+      };
+      await getApiToken(true);
+      state.currentUser = profile;
+      authMode = 'api';
+      return true;
+    }
+
+    async function refreshApiWorkspace() {
+      if (authMode !== 'api' || !state.currentUser) return;
+      const role = state.currentUser.role;
+      const serviceResult = await apiRequest('/services?limit=48', {}, false);
+      const publicServices = Array.isArray(serviceResult.data) ? serviceResult.data : [];
+      state.services = publicServices;
+      if (role === 'customer') {
+        const [bookings, payments] = await Promise.all([
+          apiRequest('/bookings/my'),
+          apiRequest('/payments/my')
+        ]);
+        state.bookings = Array.isArray(bookings.data) ? bookings.data : [];
+        state.payments = Array.isArray(payments.data) ? payments.data : [];
+      } else if (role === 'technician') {
+        const [bookings, services] = await Promise.all([
+          apiRequest('/bookings/technician'),
+          apiRequest('/services/my')
+        ]);
+        const ownServices = Array.isArray(services.data) ? services.data : [];
+        const byId = new Map(publicServices.map(item => [String(item._id), item]));
+        ownServices.forEach(item => byId.set(String(item._id), item));
+        state.services = Array.from(byId.values());
+        state.bookings = Array.isArray(bookings.data) ? bookings.data : [];
+      } else if (role === 'admin') {
+        const [bookings, services, users, payments] = await Promise.all([
+          apiRequest('/admin/bookings'),
+          apiRequest('/admin/services'),
+          apiRequest('/admin/users'),
+          apiRequest('/admin/payments')
+        ]);
+        state.bookings = Array.isArray(bookings.data) ? bookings.data : [];
+        state.services = Array.isArray(services.data) ? services.data : [];
+        state.users = (Array.isArray(users.data) ? users.data : []).map(item => ({ ...item, _id: String(item.id || item._id) }));
+        state.payments = Array.isArray(payments.data) ? payments.data : [];
+      }
+      saveState();
+    }
+
+    async function uploadApiImage(file) {
+      const form = new FormData();
+      form.append('file', file);
+      const result = await apiRequest('/uploads/image', { method: 'POST', body: form });
+      if (!result.data || !result.data.url) throw new Error('The image upload did not return a usable URL.');
+      return result.data.url;
     }
 
     // ============================================================================
@@ -865,14 +973,19 @@
     // ============================================================================
     function syncHeaderAndTheme() {
       const root = document.documentElement;
-      if (state.theme === 'dark') {
-        root.classList.add('dark');
-        document.getElementById('iconSun')?.classList.remove('hidden');
-        document.getElementById('iconMoon')?.classList.add('hidden');
-      } else {
-        root.classList.remove('dark');
-        document.getElementById('iconSun')?.classList.add('hidden');
-        document.getElementById('iconMoon')?.classList.remove('hidden');
+      const darkMode = state.theme === 'dark';
+      root.classList.toggle('dark', darkMode);
+      document.body?.classList.toggle('dark', darkMode);
+      root.dataset.theme = darkMode ? 'dark' : 'light';
+      if (document.body) document.body.dataset.theme = darkMode ? 'dark' : 'light';
+      root.style.colorScheme = darkMode ? 'dark' : 'light';
+      document.getElementById('iconSun')?.classList.toggle('hidden', !darkMode);
+      document.getElementById('iconMoon')?.classList.toggle('hidden', darkMode);
+      const themeButton = document.getElementById('btnThemeToggle');
+      if (themeButton) {
+        themeButton.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+        themeButton.setAttribute('aria-pressed', String(darkMode));
+        themeButton.title = darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
       }
 
       // Route badge
@@ -4411,11 +4524,6 @@
           sk.classList.add('hidden');
           vp.classList.remove('hidden');
         }, 1500);
-      });
-
-      // 404 Page Preview
-      document.getElementById('btnShow404')?.addEventListener('click', () => {
-        navigate('/unknown-broken-circuit-route');
       });
 
       // Code & Deploy Guide Modal
