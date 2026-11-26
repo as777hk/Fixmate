@@ -6,7 +6,7 @@ const categories = ["Smartphone", "Laptop & PC", "AC", "Refrigerator", "TV", "Wa
 
 export function Footer() {
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" id="contact">
       <div className="shell footer-main">
         <div className="footer-brand-col">
           <Brand inverse />

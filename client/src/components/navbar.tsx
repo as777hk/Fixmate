@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowUpRight, ChevronDown, Menu, Moon, Sun, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, Moon, Phone, Sun, X } from "lucide-react";
 import { toast } from "sonner";
 import { Brand } from "./brand";
 import { Avatar } from "./avatar";
@@ -19,8 +19,10 @@ export function Navbar() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const nav = [
     { href: "/", label: "Home" },
-    { href: "/services", label: "Services" },
-    { href: "/about", label: "How It Works" }
+    { href: "/#about", label: "About" },
+    { href: "/#services", label: "Services" },
+    { href: "/#process", label: "How It Works" },
+    { href: "/#contact", label: "Contact" }
   ];
 
   const toggleTheme = () => {
@@ -44,13 +46,20 @@ export function Navbar() {
       <div className="header-inner shell">
         <Brand />
         <nav className="desktop-nav" aria-label="Main navigation">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className={pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href)) ? "nav-link active" : "nav-link"}>
-              {item.label}
-            </Link>
-          ))}
+          {nav.map((item) => {
+            const active = item.href === "/" ? pathname === "/" : item.href === "/#services" && pathname.startsWith("/services");
+            return (
+              <Link key={item.href} href={item.href} className={active ? "nav-link active" : "nav-link"}>
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="header-actions">
+          <a className="header-call" href="tel:+8801711489210" aria-label="Call FixMate support">
+            <span className="header-call-icon"><Phone size={16} /></span>
+            <span><small>CALL OUR TEAM</small><strong>+880 1711-489210</strong></span>
+          </a>
           <button className="icon-button theme-button" aria-label="Toggle colour theme" onClick={toggleTheme}>
             {theme === "dark" || (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark") ? <Sun size={18} /> : <Moon size={18} />}
           </button>
