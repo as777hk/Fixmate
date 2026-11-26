@@ -6,6 +6,7 @@ declare global {
   interface Window {
     tailwind?: { config?: Record<string, unknown> };
     __FIXMATE_DEMO_BOOTED__?: boolean;
+    FIXMATE_GOOGLE_AUTH_ENABLED?: boolean;
   }
 }
 
@@ -71,6 +72,7 @@ export function FixMateDemoRoot() {
     async function boot() {
       try {
         document.body.className = "bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200";
+        window.FIXMATE_GOOGLE_AUTH_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
 
         const response = await fetch("/fixmate-demo-shell.html", { cache: "force-cache" });
         if (!response.ok) throw new Error("FixMate demo shell could not be loaded.");
