@@ -4800,6 +4800,11 @@
         if (authMode === 'api') {
           try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
         }
+        // Restore the isolated local preview dataset before switching to a demo persona.
+        state.users = JSON.parse(JSON.stringify(INITIAL_STATE.users));
+        state.services = JSON.parse(JSON.stringify(INITIAL_STATE.services));
+        state.bookings = JSON.parse(JSON.stringify(INITIAL_STATE.bookings));
+        state.payments = JSON.parse(JSON.stringify(INITIAL_STATE.payments));
         const u = state.users.find(x => x.email === email);
         if (!u) return;
         authMode = 'preview';
@@ -4846,7 +4851,10 @@
       document.getElementById('btnOpenCodeModal')?.addEventListener('click', openCodeAndDeployModal);
 
       // Reset Demo Data Button
-      document.getElementById('btnResetDemoData')?.addEventListener('click', () => {
+      document.getElementById('btnResetDemoData')?.addEventListener('click', async () => {
+        try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (e) {}
+        activeApiToken = '';
+        authMode = 'none';
         try { localStorage.removeItem('fixmate_v3_state'); } catch (e) {}
         state = JSON.parse(JSON.stringify(INITIAL_STATE));
         saveState();
