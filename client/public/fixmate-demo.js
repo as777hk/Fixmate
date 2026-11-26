@@ -3355,6 +3355,24 @@
           return;
         }
 
+        if (authMode === 'api') {
+          (async () => {
+            try {
+              await apiRequest('/bookings', {
+                method: 'POST',
+                body: JSON.stringify({ serviceId: srv._id, customerPhone: phone, address: addr, preferredDate: prefDate, problemDescription: desc })
+              });
+              await refreshApiWorkspace();
+              closeModal();
+              showToast('Repair request saved to your FixMate account.', 'success');
+              navigate('/dashboard/customer/bookings');
+            } catch (error) {
+              showToast(error.message || 'Unable to submit this repair request.', 'error');
+            }
+          })();
+          return;
+        }
+
         const newBooking = {
           _id: 'bkg_' + Math.floor(1000 + Math.random() * 9000),
           ticketNo: 'FM-' + Math.floor(1050 + Math.random() * 900),
@@ -3440,6 +3458,23 @@
           showToast('Final amount must be a number greater than 0.', 'error');
           return;
         }
+        if (authMode === 'api') {
+          (async () => {
+            try {
+              await apiRequest('/bookings/' + encodeURIComponent(bkg._id) + '/status', {
+                method: 'PATCH',
+                body: JSON.stringify({ status: 'completed', finalAmount: amt })
+              });
+              await refreshApiWorkspace();
+              closeModal();
+              showToast('Repair completion and final bill saved.', 'success');
+              renderApp();
+            } catch (error) {
+              showToast(error.message || 'Unable to complete this repair.', 'error');
+            }
+          })();
+          return;
+        }
         bkg.status = 'completed';
         bkg.finalAmount = amt;
         bkg.statusHistory = bkg.statusHistory || [];
@@ -3458,6 +3493,23 @@
         return;
       }
 
+      if (authMode === 'api') {
+        (async () => {
+          try {
+            const checkout = await apiRequest('/payments/create-checkout-session', {
+              method: 'POST',
+              body: JSON.stringify({ bookingId: bkg._id })
+            });
+            if (!checkout.data || !checkout.data.url) throw new Error('Stripe did not return a checkout URL.');
+            window.location.assign(checkout.data.url);
+          } catch (error) {
+            showToast(error.message || 'Secure Stripe checkout is unavailable.', 'error');
+          }
+        })();
+        return;
+      }
+
+      // The local card simulation is retained only for the explicit preview-role switcher.
       const sessionId = 'cs_test_fixmate_' + bkg._id;
       openModal(`
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
@@ -3664,8 +3716,26 @@
           showToast('Please write a short review.', 'error');
           return;
         }
+        if (authMode === 'api') {
+          (async () => {
+            try {
+              await apiRequest('/bookings/' + encodeURIComponent(bkg._id) + '/review', {
+                method: 'POST',
+                body: JSON.stringify({ rating: stars, review: rev })
+              });
+              await refreshApiWorkspace();
+              closeModal();
+              showToast('Thank you. Your review has been saved.', 'success');
+              renderApp();
+            } catch (error) {
+              showToast(error.message || 'Unable to save this review.', 'error');
+            }
+          })();
+          return;
+        }
         bkg.rating = stars;
-        bkg.review = rev;        // Recalculate service rating average
+        bkg.review = rev;
+        // Recalculate service rating average
         const srv = state.services.find(s => s._id === bkg.serviceId);
         if (srv) {
           srv.ratingCount = (srv.ratingCount || 1) + 1;
@@ -4279,6 +4349,12 @@
           const id = btn.getAttribute('data-tech-accept');
           const bkg = state.bookings.find(b => b._id === id);
           if (!bkg || bkg.status !== 'requested') return;
+          if (authMode === 'api') {
+            apiRequest('/bookings/' + encodeURIComponent(id) + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'accepted' }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('Job accepted.', 'success'); renderApp(); })
+              .catch(error => showToast(error.message || 'Unable to accept this job.', 'error'));
+            return;
+          }
           bkg.status = 'accepted';
           bkg.statusHistory = bkg.statusHistory || [];
           bkg.statusHistory.push({ status: 'accepted', changedAt: new Date().toISOString() });
@@ -4299,6 +4375,12 @@
             confirmText: 'Reject Request',
             danger: true,
             onConfirm: () => {
+              if (authMode === 'api') {
+                apiRequest('/bookings/' + encodeURIComponent(id) + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'rejected' }) })
+                  .then(async () => { await refreshApiWorkspace(); showToast('Repair request rejected.', 'warning'); renderApp(); })
+                  .catch(error => showToast(error.message || 'Unable to reject this request.', 'error'));
+                return;
+              }
               bkg.status = 'rejected';
               bkg.statusHistory = bkg.statusHistory || [];
               bkg.statusHistory.push({ status: 'rejected', changedAt: new Date().toISOString() });
@@ -4315,6 +4397,12 @@
           const id = btn.getAttribute('data-tech-start');
           const bkg = state.bookings.find(b => b._id === id);
           if (!bkg || bkg.status !== 'accepted') return;
+          if (authMode === 'api') {
+            apiRequest('/bookings/' + encodeURIComponent(id) + '/status', { method: 'PATCH', body: JSON.stringify({ status: 'in-progress' }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('Repair moved to In Progress.', 'info'); renderApp(); })
+              .catch(error => showToast(error.message || 'Unable to start this repair.', 'error'));
+            return;
+          }
           bkg.status = 'in-progress';
           bkg.statusHistory = bkg.statusHistory || [];
           bkg.statusHistory.push({ status: 'in-progress', changedAt: new Date().toISOString() });
@@ -4342,6 +4430,12 @@
             showToast('Admin cannot change their own role!', 'error');
             return;
           }
+          if (authMode === 'api') {
+            apiRequest('/admin/users/' + encodeURIComponent(uid) + '/role', { method: 'PATCH', body: JSON.stringify({ role: e.target.value }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('User role updated.', 'success'); renderApp(); })
+              .catch(error => { showToast(error.message || 'Unable to update this role.', 'error'); renderApp(); });
+            return;
+          }
           targetUser.role = e.target.value;
           saveState();
           showToast(`Updated ${targetUser.name}'s role to '${targetUser.role}'`, 'success');
@@ -4361,6 +4455,12 @@
           const id = btn.getAttribute('data-approve-srv');
           const srv = state.services.find(s => s._id === id);
           if (!srv) return;
+          if (authMode === 'api') {
+            apiRequest('/admin/services/' + encodeURIComponent(id) + '/approval', { method: 'PATCH', body: JSON.stringify({ approvalStatus: 'approved' }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('Service approved and published.', 'success'); renderApp(); })
+              .catch(error => showToast(error.message || 'Unable to approve this service.', 'error'));
+            return;
+          }
           srv.approvalStatus = 'approved';
           saveState();
           showToast(`Approved "${srv.title}"! Now live on public pages.`, 'success');
@@ -4373,6 +4473,12 @@
           const id = btn.getAttribute('data-reject-srv');
           const srv = state.services.find(s => s._id === id);
           if (!srv) return;
+          if (authMode === 'api') {
+            apiRequest('/admin/services/' + encodeURIComponent(id) + '/approval', { method: 'PATCH', body: JSON.stringify({ approvalStatus: 'rejected' }) })
+              .then(async () => { await refreshApiWorkspace(); showToast('Service rejected.', 'warning'); renderApp(); })
+              .catch(error => showToast(error.message || 'Unable to reject this service.', 'error'));
+            return;
+          }
           srv.approvalStatus = 'rejected';
           saveState();
           showToast(`Rejected "${srv.title}". Hidden from public pages.`, 'warning');
