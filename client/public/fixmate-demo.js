@@ -1612,9 +1612,11 @@
     // ----------------------------------------------------------------------------
     function renderServiceDetailsPage() {
       const srv = state.services.find(s => s._id === state.selectedServiceId);
-      // PDF Page 9: "If the service does not exist or is not approved/available, show the Not Found page."
+      // Invalid or unavailable service links return to the Home page.
       if (!srv || srv.approvalStatus !== 'approved' || !srv.isAvailable) {
-        return renderNotFoundPage('This repair service does not exist or is currently unavailable / awaiting admin approval.');
+        state.route = '/';
+        writeBrowserLocation('/', true);
+        return renderHomePage();
       }
 
       const tech = state.users.find(u => u.email === srv.technicianEmail) || {
