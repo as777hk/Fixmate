@@ -3925,7 +3925,7 @@
 
     function hasFixMateAccentBackground(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      return /(?:^|\s)bg-(?:blue|indigo|emerald|green|teal|amber|yellow|rose|red|orange|cyan|violet|purple|fuchsia|pink|lime)-(?:[4-9]00|[1-9]00|950)(?:-|\/|\s)/.test(cls)
+      return /(?:^|\s)bg-(?:blue|indigo|emerald|green|teal|amber|yellow|rose|red|orange|cyan|violet|purple|fuchsia|pink|lime)-(?:[4-9]00|950)(?:-|\/|\s)/.test(cls)
         || /(?:^|\s)bg-(?:slate-(?:900|950)|black)(?:-|\/|\s)/.test(cls)
         || /(?:^|\s)bg-gradient-to-/.test(cls);
     }
