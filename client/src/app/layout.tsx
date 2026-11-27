@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: { default: "FixMate — Smart Device & Home Appliance Repair Service Platform", template: "%s | FixMate" },
   description: "A complete FixMate repair-service demo with customer, technician and admin workflows.",
   applicationName: "FixMate",
-  icons: { icon: [{ url: "/fixmate-brand-icon.svg", type: "image/svg+xml" }], shortcut: ["/fixmate-brand-icon.svg"] },
+  icons: { icon: [{ url: "/fixmate-brand-icon.svg", type: "image/svg+xml" }], shortcut: "/fixmate-brand-icon.svg" },
   openGraph: {
     title: "FixMate — Smart Device & Home Appliance Repair Service Platform",
     description: "Browse repair services, track bookings and manage technician workflows.",
