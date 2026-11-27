@@ -3919,19 +3919,22 @@
       document.getElementById('codeModalCloseBtn')?.addEventListener('click', closeModal);
     }
 
-    // Day-mode card contrast is applied after runtime Tailwind renders dynamic HTML.
-    // This avoids invisible white labels inside cards regardless of CDN utility order.
+    // Centralized FixMate theme system: normalize every real card surface and its
+    // nested text after each route render and whenever dynamic content is inserted.
     let fixMateCardThemeObserver = null;
 
     function hasFixMateAccentBackground(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      return /(?:^|\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia|slate-(?:900|950)|black)(?:-|\/|\s)/.test(cls)
-        || /(?:^|\s)bg-gradient-to-/.test(cls);
+      return /(?:^|\\s)bg-(?:blue|indigo|emerald|green|teal|amber|yellow|rose|red|orange|cyan|violet|purple|fuchsia|pink|lime)-(?:[4-9]00|[1-9]00|950)(?:-|\\/|\\s)/.test(cls)
+        || /(?:^|\\s)bg-(?:slate-(?:900|950)|black)(?:-|\\/|\\s)/.test(cls)
+        || /(?:^|\\s)bg-gradient-to-/.test(cls);
     }
 
-    function isInsideFixMateAccent(element, card) {
+    function isInsideFixMateAccent(element, root = document.documentElement) {
       let node = element;
-      while (node && node !== card) {
+      while (node && node !== root) {
+        // A surface deliberately normalized for Day mode is no longer an accent
+        // container, even if its original class used a dark slate background.
         if (!node.hasAttribute('data-fm-day-surface') && hasFixMateAccentBackground(node)) return true;
         node = node.parentElement;
       }
@@ -3953,6 +3956,57 @@
       element.style.setProperty(property, value, 'important');
     }
 
+    function hasFixMateCardSurface(element) {
+      const cls = typeof element.className === 'string' ? element.className : '';
+      const rounded = /(?:^|\\s)rounded(?:-[a-z0-9.]+)?(?:\\s|$)/.test(cls);
+      const padded = /(?:^|\\s)(?:p|px|py|pt|pb|pl|pr)-(?:[3-9]|1[0-2])(?:\\.5)?(?:\\s|$)/.test(cls);
+      const neutralOrTintedSurface = /(?:^|\\s)bg-(?:white|slate-(?:50|100|800|900|950)|(?:blue|indigo|sky|cyan|teal|emerald|green|lime|amber|yellow|orange|rose|red|pink|purple|violet)-(?:50|100|200))(?:\\/[0-9]+)?(?:\\s|$)/.test(cls);
+      const isLayoutSurface = /^(ARTICLE|ASIDE|DIV|LI|SECTION)$/.test(element.tagName);
+      const excluded = /(?:^|\\s)(?:absolute|fixed|sticky)(?:\\s|$)/.test(cls)
+        || /bg-gradient-to-|backdrop-blur/.test(cls)
+        || element.closest('footer, [role="menu"], [role="listbox"]')
+        || !!element.closest('section.bg-slate-900.text-white');
+      return !excluded && isLayoutSurface && (element.classList.contains('fixmate-theme-surface')
+        || (rounded && padded && neutralOrTintedSurface));
+    }
+
+    function fixMateDayTextColor(element) {
+      const cls = typeof element.className === 'string' ? element.className : '';
+      const tokens = cls.split(/\\s+/).filter(Boolean);
+      if (tokens.includes('text-white') || tokens.includes('dark:text-white')) return '#0f172a';
+      if (tokens.some(token => /^(?:text|dark:text)-slate-(?:100|200|300)$/.test(token))) return '#334155';
+      if (tokens.some(token => /^(?:text|dark:text)-slate-400$/.test(token))) return '#64748b';
+
+      // Pastel foreground utilities are readable on dark panels but too faint on
+      // the white Day-mode cards. Keep the hue and move to an accessible shade.
+      const palette = '(blue|indigo|sky|cyan|teal|emerald|green|lime|amber|yellow|orange|rose|red|pink|purple|violet|fuchsia)';
+      for (const token of tokens) {
+        const match = token.match(new RegExp('^(?:text|dark:text)-' + palette + '-(100|200|300|400|500)$'));
+        if (!match) continue;
+        const shade = match[2] === '100' || match[2] === '200' ? '800' : '700';
+        return '#' + ({
+          blue: shade === '800' ? '1e40af' : '1d4ed8',
+          indigo: shade === '800' ? '3730a3' : '4338ca',
+          sky: shade === '800' ? '075985' : '0369a1',
+          cyan: shade === '800' ? '155e75' : '0e7490',
+          teal: shade === '800' ? '115e59' : '0f766e',
+          emerald: shade === '800' ? '065f46' : '047857',
+          green: shade === '800' ? '166534' : '15803d',
+          lime: shade === '800' ? '3f6212' : '4d7c0f',
+          amber: shade === '800' ? '92400e' : 'b45309',
+          yellow: shade === '800' ? '854d0e' : 'a16207',
+          orange: shade === '800' ? '9a3412' : 'c2410c',
+          rose: shade === '800' ? '9f1239' : 'be123c',
+          red: shade === '800' ? '991b1b' : 'b91c1c',
+          pink: shade === '800' ? '9d174d' : 'be185d',
+          purple: shade === '800' ? '6b21a8' : '7e22ce',
+          violet: shade === '800' ? '5b21b6' : '6d28d9',
+          fuchsia: shade === '800' ? '86198f' : 'a21caf'
+        })[match[1]];
+      }
+      return '';
+    }
+
     function syncFixMateCardTheme(scope = document) {
       const darkMode = state.theme === 'dark';
       if (darkMode) {
@@ -3970,33 +4024,22 @@
         return;
       }
 
-      const candidates = scope.querySelectorAll('article, [class*="rounded-"][class*="p-"]');
+      // Normalize neutral and softly tinted cards to a consistent white surface.
+      const candidates = scope.querySelectorAll('article, aside, div, li, section');
       candidates.forEach(card => {
-        const cls = typeof card.className === 'string' ? card.className : '';
-        const hasThemeSurface = /(?:^|\s)bg-(?:white|slate-(?:50|100|800|900|950))(?:\/[0-9]+)?(?:\s|$)/.test(cls);
-        const isPadded = /(?:^|\s)p-[0-9]+(?:\s|$)/.test(cls);
-        const excluded = /(?:^|\s)(?:absolute|fixed|sticky)(?:\s|$)/.test(cls)
-          || /bg-gradient-to-|backdrop-blur/.test(cls)
-          || !!card.closest('section.bg-slate-900.text-white');
-        if ((!hasThemeSurface && !card.classList.contains('fixmate-theme-surface')) || (!isPadded && card.tagName !== 'ARTICLE') || excluded) return;
-
+        if (!hasFixMateCardSurface(card)) return;
         applyFixMateDayOverride(card, 'background-color', '#ffffff', 'data-fm-original-bg');
         applyFixMateDayOverride(card, 'border-color', '#e2e8f0', 'data-fm-original-border');
         applyFixMateDayOverride(card, 'color', '#0f172a', 'data-fm-original-color');
         applyFixMateDayOverride(card, 'box-shadow', '0 8px 24px rgba(15, 23, 42, 0.06)', 'data-fm-original-shadow');
         card.setAttribute('data-fm-day-surface', 'true');
-
       });
-      // Also resolve dark:* text utilities across the whole app, not only inside detected cards.
-      // These are the classes that previously kept headings and card labels white in Day mode.
-      scope.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,small,label,strong,td,th,a,li').forEach(label => {
-        if (isInsideFixMateAccent(label, document.documentElement)) return;
-        const textCls = typeof label.className === 'string' ? label.className : '';
-        const tokens = textCls.split(/\s+/);
-        let color = '';
-        if (tokens.includes('text-white') || tokens.includes('dark:text-white')) color = '#0f172a';
-        else if (tokens.some(token => /^(?:text-slate-(?:100|200|300)|dark:text-slate-(?:100|200|300))$/.test(token))) color = '#334155';
-        else if (tokens.includes('text-slate-400') || tokens.includes('dark:text-slate-400')) color = '#64748b';
+
+      // Resolve low-contrast text tokens throughout the app, including newly
+      // rendered dashboard tables, card contents, modal copy and status details.
+      scope.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,small,label,strong,td,th,a,li,div,button').forEach(label => {
+        if (isInsideFixMateAccent(label)) return;
+        const color = fixMateDayTextColor(label);
         if (!color) return;
         applyFixMateDayOverride(label, 'color', color, 'data-fm-original-text');
         label.setAttribute('data-fm-day-text', 'true');
