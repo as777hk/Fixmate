@@ -3925,8 +3925,8 @@
 
     function hasFixMateAccentBackground(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      return /(?:^|\\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia)(?:-|\\/|\\s)/.test(cls)
-        || /(?:^|\\s)bg-gradient-to-/.test(cls);
+      return /(?:^|\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia)(?:-|\/|\s)/.test(cls)
+        || /(?:^|\s)bg-gradient-to-/.test(cls);
     }
 
     function isInsideFixMateAccent(element, card) {
@@ -3973,9 +3973,9 @@
       const candidates = scope.querySelectorAll('article, [class*="rounded-"][class*="p-"]');
       candidates.forEach(card => {
         const cls = typeof card.className === 'string' ? card.className : '';
-        const hasThemeSurface = /(?:^|\\s)bg-(?:white|slate-(?:50|100|800|900|950))(?:\\/[0-9]+)?(?:\\s|$)/.test(cls);
-        const isPadded = /(?:^|\\s)p-[0-9]+(?:\\s|$)/.test(cls);
-        const excluded = /(?:^|\\s)(?:absolute|fixed|sticky)(?:\\s|$)/.test(cls)
+        const hasThemeSurface = /(?:^|\s)bg-(?:white|slate-(?:50|100|800|900|950))(?:\/[0-9]+)?(?:\s|$)/.test(cls);
+        const isPadded = /(?:^|\s)p-[0-9]+(?:\s|$)/.test(cls);
+        const excluded = /(?:^|\s)(?:absolute|fixed|sticky)(?:\s|$)/.test(cls)
           || /bg-gradient-to-|backdrop-blur/.test(cls)
           || !!card.closest('section.bg-slate-900.text-white');
         if ((!hasThemeSurface && !card.classList.contains('fixmate-theme-surface')) || (!isPadded && card.tagName !== 'ARTICLE') || excluded) return;
@@ -3990,9 +3990,9 @@
           if (isInsideFixMateAccent(label, card)) return;
           const textCls = typeof label.className === 'string' ? label.className : '';
           let color = '';
-          if (/(?:^|\\s)text-white(?:\\s|$)/.test(textCls)) color = '#0f172a';
-          else if (/(?:^|\\s)text-slate-(?:100|200|300)(?:\\s|$)/.test(textCls)) color = '#334155';
-          else if (/(?:^|\\s)text-slate-400(?:\\s|$)/.test(textCls)) color = '#64748b';
+          if (/(?:^|\s)text-white(?:\s|$)/.test(textCls)) color = '#0f172a';
+          else if (/(?:^|\s)text-slate-(?:100|200|300)(?:\s|$)/.test(textCls)) color = '#334155';
+          else if (/(?:^|\s)text-slate-400(?:\s|$)/.test(textCls)) color = '#64748b';
           if (!color) return;
           applyFixMateDayOverride(label, 'color', color, 'data-fm-original-text');
           label.setAttribute('data-fm-day-text', 'true');
