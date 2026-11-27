@@ -4,38 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
-    tailwind?: { config?: Record<string, unknown> };
     __FIXMATE_DEMO_BOOTED__?: boolean;
     FIXMATE_GOOGLE_AUTH_ENABLED?: boolean;
   }
 }
-
-const TAILWIND_CONFIG = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        display: ["Plus Jakarta Sans", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"]
-      },
-      colors: {
-        brand: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          900: "#0f172a"
-        },
-        amber: {
-          500: "#f59e0b",
-          600: "#d97706"
-        }
-      }
-    }
-  }
-};
 
 function loadScript(src: string, id: string) {
   return new Promise<void>((resolve, reject) => {
@@ -100,15 +72,8 @@ export function FixMateDemoRoot() {
           `;
         }
 
-        // Tailwind's Play CDN reads its config when the script initializes.
-        // Define the complete config before loading the CDN script.
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = TAILWIND_CONFIG;
-        await loadScript("https://cdn.tailwindcss.com/3.4.17", "fixmate-tailwind-cdn");
-        if (disposed) return;
-
-        // Chart.js is loaded only when a dashboard chart is actually needed.
-        // Keeping it out of the startup waterfall makes public pages interactive sooner.
+        // Tailwind is compiled into the local Next.js stylesheet at build time.
+        // No browser-side CSS generator or external Tailwind CDN is needed here.
         await loadScript("/fixmate-demo.js", "fixmate-demo-runtime");
       } catch (err) {
         if (!disposed) setError(err instanceof Error ? err.message : "FixMate could not be started.");

@@ -1,5 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   color-scheme: light;
   font-family: "Inter", sans-serif;
@@ -82,3 +86,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   outline-offset: 2px;
 }
 ::selection { background: rgba(59, 130, 246, .22); }
+
+
+/*
+ * Critical rendering safeguards for the HTML shell injected after hydration.
+ * These remain available immediately from the local Next.js stylesheet and do
+ * not depend on any browser-side CSS generator.
+ */
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+svg {
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+svg:not([class*="w-"]) {
+  width: 1rem;
+}
+
+svg:not([class*="h-"]) {
+  height: 1rem;
+}
