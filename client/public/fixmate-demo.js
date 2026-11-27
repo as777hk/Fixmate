@@ -3925,7 +3925,7 @@
 
     function hasFixMateAccentBackground(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      return /(?:^|\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia)(?:-|\/|\s)/.test(cls)
+      return /(?:^|\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia|slate-(?:900|950)|black)(?:-|\/|\s)/.test(cls)
         || /(?:^|\s)bg-gradient-to-/.test(cls);
     }
 
@@ -3986,17 +3986,20 @@
         applyFixMateDayOverride(card, 'box-shadow', '0 8px 24px rgba(15, 23, 42, 0.06)', 'data-fm-original-shadow');
         card.setAttribute('data-fm-day-surface', 'true');
 
-        card.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,small,label,strong,td,th,a').forEach(label => {
-          if (isInsideFixMateAccent(label, card)) return;
-          const textCls = typeof label.className === 'string' ? label.className : '';
-          let color = '';
-          if (/(?:^|\s)text-white(?:\s|$)/.test(textCls)) color = '#0f172a';
-          else if (/(?:^|\s)text-slate-(?:100|200|300)(?:\s|$)/.test(textCls)) color = '#334155';
-          else if (/(?:^|\s)text-slate-400(?:\s|$)/.test(textCls)) color = '#64748b';
-          if (!color) return;
-          applyFixMateDayOverride(label, 'color', color, 'data-fm-original-text');
-          label.setAttribute('data-fm-day-text', 'true');
-        });
+      });
+      // Also resolve dark:* text utilities across the whole app, not only inside detected cards.
+      // These are the classes that previously kept headings and card labels white in Day mode.
+      scope.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,small,label,strong,td,th,a,li').forEach(label => {
+        if (isInsideFixMateAccent(label, document.documentElement)) return;
+        const textCls = typeof label.className === 'string' ? label.className : '';
+        const tokens = textCls.split(/\s+/);
+        let color = '';
+        if (tokens.includes('text-white') || tokens.includes('dark:text-white')) color = '#0f172a';
+        else if (tokens.some(token => /^(?:text-slate-(?:100|200|300)|dark:text-slate-(?:100|200|300))$/.test(token))) color = '#334155';
+        else if (tokens.includes('text-slate-400') || tokens.includes('dark:text-slate-400')) color = '#64748b';
+        if (!color) return;
+        applyFixMateDayOverride(label, 'color', color, 'data-fm-original-text');
+        label.setAttribute('data-fm-day-text', 'true');
       });
     }
 
