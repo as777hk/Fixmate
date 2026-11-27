@@ -1021,6 +1021,11 @@
       root.dataset.theme = darkMode ? 'dark' : 'light';
       if (document.body) document.body.dataset.theme = darkMode ? 'dark' : 'light';
       root.style.colorScheme = darkMode ? 'dark' : 'light';
+      root.style.backgroundColor = darkMode ? '#020617' : '#f8fafc';
+      if (document.body) {
+        document.body.style.colorScheme = darkMode ? 'dark' : 'light';
+        document.body.style.backgroundColor = darkMode ? '#020617' : '#f8fafc';
+      }
       document.getElementById('iconSun')?.classList.toggle('hidden', !darkMode);
       document.getElementById('iconMoon')?.classList.toggle('hidden', darkMode);
       const themeButton = document.getElementById('btnThemeToggle');
@@ -4711,6 +4716,12 @@
     async function bootFixMateDemo() {
       if (window.__FIXMATE_DEMO_BOOTED__) return;
       window.__FIXMATE_DEMO_BOOTED__ = true;
+      // Remove obsolete test-only view buttons even when an older cached shell is served.
+      document.querySelectorAll('button, [role="button"], a').forEach(control => {
+        const label = (control.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+        if (label === 'loading state' || label === '404 view') control.remove();
+      });
+      document.getElementById('skeletonLoaderView')?.remove();
       loadState();
       // Keep a locally selected preview persona across refreshes, but always prefer a real API session.
       const savedPreviewUser = authMode === 'preview' ? state.currentUser : null;
@@ -4808,13 +4819,19 @@
         navigate(getRoleDashboardRoute(state.currentUser));
       });
 
-      // Theme toggle
-      document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      // Reliable delegated theme toggle: the navbar shell stays mounted while views rerender.
+      document.addEventListener('click', event => {
+        const target = event.target;
+        const toggle = target instanceof Element ? target.closest('#btnThemeToggle') : null;
+        if (!toggle) return;
+        event.preventDefault();
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('fixmate_theme', state.theme); } catch (error) {}
         saveState();
+        syncHeaderAndTheme();
         renderApp();
         showToast(`Switched to ${state.theme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
-      });
+      }, true);
 
       // Auth buttons
       document.getElementById('navBtnSignIn')?.addEventListener('click', () => navigate('/sign-in'));
@@ -4889,20 +4906,6 @@
         saveState();
         showToast('Switched to Logged-Out Visitor state', 'warning');
         renderApp();
-      });
-
-      // Skeleton Loader Preview
-      document.getElementById('btnToggleSkeleton')?.addEventListener('click', () => {
-        const sk = document.getElementById('skeletonLoaderView');
-        const vp = document.getElementById('appViewport');
-        if (!sk || !vp) return;
-        sk.classList.remove('hidden');
-        vp.classList.add('hidden');
-        showToast('Loading services...', 'info');
-        setTimeout(() => {
-          sk.classList.add('hidden');
-          vp.classList.remove('hidden');
-        }, 1500);
       });
 
       // Code & Deploy Guide Modal
