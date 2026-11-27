@@ -2532,7 +2532,7 @@
             <p class="font-display font-extrabold text-3xl text-amber-500 mt-2">${pendingReq}</p>
             <p class="text-xs text-slate-500 mt-1">Awaiting your Accept / Reject response</p>
           </div>
-          <div class="p-5 rounded-2xl bg-slate-900 dark:bg-emerald-950/70 text-white border border-slate-800 shadow-sm">
+          <div class="fixmate-theme-surface p-5 rounded-2xl bg-slate-900 dark:bg-emerald-950/70 text-white border border-slate-800 shadow-sm">
             <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Total Earnings</span>
             <p class="font-display font-extrabold text-3xl text-emerald-400 mt-2">$${totalEarnings}</p>
             <p class="text-xs text-slate-400 mt-1">Settled Stripe payouts</p>
@@ -3541,7 +3541,7 @@
           <button type="button" id="stripeCloseBtn" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">✕</button>
         </div>
 
-        <div class="p-4 rounded-2xl bg-slate-900 text-white mb-4">
+        <div class="fixmate-theme-surface p-4 rounded-2xl bg-slate-900 text-white mb-4">
           <div class="flex items-center justify-between text-xs text-slate-400">
             <span>FixMate Pay-After-Service</span>
             <span class="font-mono">${escapeHtml(sessionId)}</span>
@@ -3908,7 +3908,7 @@
             <p class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-[11px] font-semibold leading-relaxed text-slate-700 dark:text-slate-200">These credentials open a safe local preview using sample data in your browser. They do not sign in to real production accounts or change live customer, booking or payment records.</p>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] space-y-1">
+          <div class="fixmate-theme-surface p-3.5 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] space-y-1">
             <p class="text-emerald-400 font-bold">LIVE APPLICATION STACK</p>
             <p>Frontend: Next.js App Router</p>
             <p>API: Express.js · MongoDB · Better Auth</p>
