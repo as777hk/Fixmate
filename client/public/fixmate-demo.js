@@ -3925,9 +3925,9 @@
 
     function hasFixMateAccentBackground(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      return /(?:^|\\s)bg-(?:blue|indigo|emerald|green|teal|amber|yellow|rose|red|orange|cyan|violet|purple|fuchsia|pink|lime)-(?:[4-9]00|[1-9]00|950)(?:-|\\/|\\s)/.test(cls)
-        || /(?:^|\\s)bg-(?:slate-(?:900|950)|black)(?:-|\\/|\\s)/.test(cls)
-        || /(?:^|\\s)bg-gradient-to-/.test(cls);
+      return /(?:^|\s)bg-(?:blue|indigo|emerald|green|teal|amber|yellow|rose|red|orange|cyan|violet|purple|fuchsia|pink|lime)-(?:[4-9]00|[1-9]00|950)(?:-|\/|\s)/.test(cls)
+        || /(?:^|\s)bg-(?:slate-(?:900|950)|black)(?:-|\/|\s)/.test(cls)
+        || /(?:^|\s)bg-gradient-to-/.test(cls);
     }
 
     function isInsideFixMateAccent(element, root = document.documentElement) {
@@ -3958,11 +3958,11 @@
 
     function hasFixMateCardSurface(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      const rounded = /(?:^|\\s)rounded(?:-[a-z0-9.]+)?(?:\\s|$)/.test(cls);
-      const padded = /(?:^|\\s)(?:p|px|py|pt|pb|pl|pr)-(?:[3-9]|1[0-2])(?:\\.5)?(?:\\s|$)/.test(cls);
-      const neutralOrTintedSurface = /(?:^|\\s)bg-(?:white|slate-(?:50|100|800|900|950)|(?:blue|indigo|sky|cyan|teal|emerald|green|lime|amber|yellow|orange|rose|red|pink|purple|violet)-(?:50|100|200))(?:\\/[0-9]+)?(?:\\s|$)/.test(cls);
+      const rounded = /(?:^|\s)rounded(?:-[a-z0-9.]+)?(?:\s|$)/.test(cls);
+      const padded = /(?:^|\s)(?:p|px|py|pt|pb|pl|pr)-(?:[3-9]|1[0-2])(?:\.5)?(?:\s|$)/.test(cls);
+      const neutralOrTintedSurface = /(?:^|\s)bg-(?:white|slate-(?:50|100|800|900|950)|(?:blue|indigo|sky|cyan|teal|emerald|green|lime|amber|yellow|orange|rose|red|pink|purple|violet)-(?:50|100|200))(?:\/[0-9]+)?(?:\s|$)/.test(cls);
       const isLayoutSurface = /^(ARTICLE|ASIDE|DIV|LI|SECTION)$/.test(element.tagName);
-      const excluded = /(?:^|\\s)(?:absolute|fixed|sticky)(?:\\s|$)/.test(cls)
+      const excluded = /(?:^|\s)(?:absolute|fixed|sticky)(?:\s|$)/.test(cls)
         || /bg-gradient-to-|backdrop-blur/.test(cls)
         || element.closest('footer, [role="menu"], [role="listbox"]')
         || !!element.closest('section.bg-slate-900.text-white');
@@ -3972,7 +3972,7 @@
 
     function fixMateDayTextColor(element) {
       const cls = typeof element.className === 'string' ? element.className : '';
-      const tokens = cls.split(/\\s+/).filter(Boolean);
+      const tokens = cls.split(/\s+/).filter(Boolean);
       if (tokens.includes('text-white') || tokens.includes('dark:text-white')) return '#0f172a';
       if (tokens.some(token => /^(?:text|dark:text)-slate-(?:100|200|300)$/.test(token))) return '#334155';
       if (tokens.some(token => /^(?:text|dark:text)-slate-400$/.test(token))) return '#64748b';
