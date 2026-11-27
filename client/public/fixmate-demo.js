@@ -4979,12 +4979,9 @@
       }
       await publicCataloguePromise;
 
-      if (authMode === 'api') {
-        const workspaceLoad = refreshApiWorkspace().catch(error => {
-          console.error('FixMate live workspace data:', error);
-        });
-        // A public page should not be held behind dashboard-only API calls.
-        if (protectedBootRoute) await workspaceLoad;
+      if (authMode === 'api' && protectedBootRoute) {
+        try { await refreshApiWorkspace(); }
+        catch (error) { console.error('FixMate live workspace data:', error); }
       }
       syncHeaderAndTheme();
       state.route = routeFromBrowserLocation();
