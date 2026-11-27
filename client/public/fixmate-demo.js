@@ -629,6 +629,7 @@
 
     let activeApiToken = '';
     let authMode = 'none';
+    let lastThemeAdminAccess = null;
 
     function saveState() {
       try {
@@ -639,7 +640,10 @@
           currentUser: previewMode ? state.currentUser : null
         };
         localStorage.setItem('fixmate_v3_state', JSON.stringify(snapshot));
-        localStorage.setItem('fixmate_theme', state.theme);
+        // Only Admin can persist theme preferences. Other roles always view Light mode.
+        if (state.currentUser?.role === 'admin') {
+          localStorage.setItem('fixmate_theme', state.theme);
+        }
       } catch (e) {}
     }
 
@@ -1015,6 +1019,19 @@
     // ============================================================================
     function syncHeaderAndTheme() {
       const root = document.documentElement;
+      const isAdmin = state.currentUser?.role === 'admin';
+
+      // Keep public/customer/technician views in Light mode. Restore the saved
+      // Admin preference whenever an Admin session becomes active.
+      if (isAdmin && lastThemeAdminAccess !== true) {
+        try {
+          const savedTheme = localStorage.getItem('fixmate_theme');
+          if (savedTheme === 'dark' || savedTheme === 'light') state.theme = savedTheme;
+        } catch (error) {}
+      } else if (!isAdmin) {
+        state.theme = 'light';
+      }
+      lastThemeAdminAccess = isAdmin;
       const darkMode = state.theme === 'dark';
       root.classList.toggle('dark', darkMode);
       document.body?.classList.toggle('dark', darkMode);
@@ -1030,9 +1047,24 @@
       document.getElementById('iconMoon')?.classList.toggle('hidden', darkMode);
       const themeButton = document.getElementById('btnThemeToggle');
       if (themeButton) {
-        themeButton.setAttribute('aria-label', darkMode ? 'Switch to light mode' : 'Switch to dark mode');
+        themeButton.disabled = !isAdmin;
+        themeButton.setAttribute('aria-disabled', String(!isAdmin));
+        themeButton.setAttribute('aria-label', isAdmin
+          ? (darkMode ? 'Switch to light mode' : 'Switch to dark mode')
+          : 'Day/Night mode is under construction and available to Admin only');
         themeButton.setAttribute('aria-pressed', String(darkMode));
-        themeButton.title = darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        themeButton.title = isAdmin
+          ? (darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode')
+          : 'Under Construction — available to Admin only';
+        themeButton.classList.toggle('opacity-50', !isAdmin);
+        themeButton.classList.toggle('cursor-not-allowed', !isAdmin);
+        themeButton.classList.toggle('hover:bg-slate-100', isAdmin);
+        themeButton.classList.toggle('dark:hover:bg-slate-700', isAdmin);
+      }
+      const themeNotice = document.getElementById('themeUnderConstructionLabel');
+      if (themeNotice) {
+        themeNotice.classList.toggle('hidden', isAdmin);
+        themeNotice.setAttribute('aria-hidden', String(isAdmin));
       }
 
       // Route badge
@@ -4965,6 +4997,12 @@
         const toggle = target instanceof Element ? target.closest('#btnThemeToggle') : null;
         if (!toggle) return;
         event.preventDefault();
+        if (state.currentUser?.role !== 'admin') {
+          state.theme = 'light';
+          syncHeaderAndTheme();
+          showToast('Day/Night mode is under construction and currently available to Admin only.', 'warning');
+          return;
+        }
         state.theme = state.theme === 'dark' ? 'light' : 'dark';
         try { localStorage.setItem('fixmate_theme', state.theme); } catch (error) {}
         saveState();
