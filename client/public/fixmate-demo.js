@@ -3922,6 +3922,7 @@
       syncHeaderAndTheme();
       const viewport = document.getElementById('appViewport');
       if (!viewport) return;
+      viewport.setAttribute('aria-busy', 'false');
 
       const r = state.route;
       if (r === '/') {
