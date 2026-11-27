@@ -3932,7 +3932,7 @@
     function isInsideFixMateAccent(element, card) {
       let node = element;
       while (node && node !== card) {
-        if (hasFixMateAccentBackground(node)) return true;
+        if (!node.hasAttribute('data-fm-day-surface') && hasFixMateAccentBackground(node)) return true;
         node = node.parentElement;
       }
       return false;
