@@ -1909,12 +1909,13 @@
 
             <!-- Demo Quick Fill Credentials -->
             <div class="mt-6 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700 text-xs space-y-1.5">
-              <p class="font-bold text-slate-700 dark:text-slate-200">Production test accounts · select to fill email only</p>
+              <p class="font-bold text-slate-700 dark:text-slate-200">Demo preview accounts · click to fill both fields</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Shared password: <strong class="font-mono text-slate-800 dark:text-slate-100">Password123</strong></p>
               <div class="flex flex-wrap gap-1.5 pt-1">
-                <button type="button" data-fill-email="samira@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-mono text-[11px]">Customer</button>
-                <button type="button" data-fill-email="ariyan.tech@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-mono text-[11px]">Technician (Pro)</button>
-                <button type="button" data-fill-email="nusrat.tech@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono text-[11px]">Technician (Free)</button>
-                <button type="button" data-fill-email="admin@fixmate.com" class="fill-cred-btn px-2 py-1 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 font-mono text-[11px]">Admin</button>
+                <button type="button" data-fill-email="nadia@fixmate.com" data-fill-password="Password123" class="fill-cred-btn px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-mono text-[11px]">Customer</button>
+                <button type="button" data-fill-email="rafiq.tech@fixmate.com" data-fill-password="Password123" class="fill-cred-btn px-2 py-1 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-mono text-[11px]">Technician (Pro)</button>
+                <button type="button" data-fill-email="tanvir.tech@fixmate.com" data-fill-password="Password123" class="fill-cred-btn px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-mono text-[11px]">Technician (Free)</button>
+                <button type="button" data-fill-email="admin@fixmate.com" data-fill-password="Password123" class="fill-cred-btn px-2 py-1 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 font-mono text-[11px]">Admin</button>
               </div>
             </div>
 
@@ -3875,28 +3876,32 @@
 
           <div class="rounded-2xl border-2 border-amber-300 dark:border-amber-500/70 bg-gradient-to-br from-amber-50 via-yellow-50 to-white dark:from-amber-950/70 dark:via-slate-900 dark:to-slate-950 p-4 shadow-xl shadow-amber-500/15 ring-2 ring-amber-200/60 dark:ring-amber-500/20 space-y-3">
             <div class="flex items-center justify-between gap-3">
-              <p class="font-display text-sm font-extrabold text-amber-950 dark:text-amber-200">LIVE PRODUCTION TEST ACCOUNTS</p>
-              <span class="rounded-full bg-amber-400 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-950">Verified list</span>
+              <p class="font-display text-sm font-extrabold text-amber-950 dark:text-amber-200">LOCAL DEMO PREVIEW ACCOUNTS</p>
+              <span class="rounded-full bg-amber-400 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-950">Preview only</span>
+            </div>
+            <div class="rounded-xl border-2 border-amber-400/80 bg-amber-100 dark:bg-amber-900/50 px-4 py-3">
+              <span class="block text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-200">Shared demo password</span>
+              <p class="mt-1 font-mono text-lg font-extrabold tracking-wide text-slate-950 dark:text-white">Password123</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div class="rounded-xl border border-violet-200 dark:border-violet-800 bg-white/90 dark:bg-violet-950/30 p-3">
-                <span class="text-[10px] font-black uppercase tracking-wider text-violet-700 dark:text-violet-300">Admin</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-violet-700 dark:text-violet-300">Admin Preview</span>
                 <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">admin@fixmate.com</p>
               </div>
               <div class="rounded-xl border border-blue-200 dark:border-blue-800 bg-white/90 dark:bg-blue-950/30 p-3">
-                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300">Customer</span>
-                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">samira@fixmate.com</p>
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300">Customer Preview</span>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">nadia@fixmate.com</p>
               </div>
               <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white/90 dark:bg-emerald-950/30 p-3">
                 <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Technician · Pro</span>
-                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">ariyan.tech@fixmate.com</p>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">rafiq.tech@fixmate.com</p>
               </div>
               <div class="rounded-xl border border-orange-200 dark:border-orange-800 bg-white/90 dark:bg-orange-950/30 p-3">
                 <span class="text-[10px] font-black uppercase tracking-wider text-orange-700 dark:text-orange-300">Technician · Free</span>
-                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">nusrat.tech@fixmate.com</p>
+                <p class="mt-1 break-all font-mono text-xs font-extrabold text-slate-900 dark:text-white">tanvir.tech@fixmate.com</p>
               </div>
             </div>
-            <p class="rounded-lg bg-amber-100/80 dark:bg-amber-900/40 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-950 dark:text-amber-100">Passwords are deliberately not displayed in this public demo panel. Production account passwords are stored securely in Vercel environment variables and must be provided only to authorized testers by the project owner.</p>
+            <p class="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2 text-[11px] font-semibold leading-relaxed text-slate-700 dark:text-slate-200">These credentials open a safe local preview using sample data in your browser. They do not sign in to real production accounts or change live customer, booking or payment records.</p>
           </div>
 
           <div class="p-3.5 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] space-y-1">
@@ -4077,8 +4082,11 @@
       document.querySelectorAll('.fill-cred-btn').forEach(b => {
         b.addEventListener('click', () => {
           const email = b.getAttribute('data-fill-email');
-          const el = document.getElementById('loginEmail');
-          if (el) el.value = email;
+          const password = b.getAttribute('data-fill-password');
+          const emailInput = document.getElementById('loginEmail');
+          const passwordInput = document.getElementById('loginPassword');
+          if (emailInput) emailInput.value = email || '';
+          if (passwordInput) passwordInput.value = password || '';
         });
       });
 
@@ -4093,6 +4101,33 @@
           showToast('Enter your email address and password.', 'error');
           return;
         }
+
+        // Public demo credentials open the isolated sample workspace only.
+        const previewEmails = [
+          'nadia@fixmate.com',
+          'rafiq.tech@fixmate.com',
+          'tanvir.tech@fixmate.com',
+          'admin@fixmate.com'
+        ];
+        if (password === 'Password123' && previewEmails.includes(email)) {
+          state.users = JSON.parse(JSON.stringify(INITIAL_STATE.users));
+          state.services = JSON.parse(JSON.stringify(INITIAL_STATE.services));
+          state.bookings = JSON.parse(JSON.stringify(INITIAL_STATE.bookings));
+          state.payments = JSON.parse(JSON.stringify(INITIAL_STATE.payments));
+          const previewUser = state.users.find(user => user.email.toLowerCase() === email);
+          if (previewUser) {
+            authMode = 'preview';
+            activeApiToken = '';
+            state.currentUser = previewUser;
+            saveState();
+            showToast('Opened safe local demo preview as ' + previewUser.role + '.', 'success');
+            const target = state.redirectAfterLogin || getRoleDashboardRoute(previewUser);
+            state.redirectAfterLogin = null;
+            navigate(target);
+            return;
+          }
+        }
+
         const submit = e.currentTarget.querySelector('button[type="submit"]');
         if (submit) { submit.disabled = true; submit.textContent = 'Signing in securely…'; }
         try {
