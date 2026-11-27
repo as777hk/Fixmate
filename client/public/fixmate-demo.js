@@ -632,24 +632,38 @@
 
     function saveState() {
       try {
-        const snapshot = { ...state, currentUser: authMode === 'preview' ? state.currentUser : null };
+        const previewMode = authMode === 'preview' && !!state.currentUser;
+        const snapshot = {
+          ...state,
+          previewMode,
+          currentUser: previewMode ? state.currentUser : null
+        };
         localStorage.setItem('fixmate_v3_state', JSON.stringify(snapshot));
         localStorage.setItem('fixmate_theme', state.theme);
       } catch (e) {}
     }
 
     function loadState() {
+      authMode = 'none';
       try {
         const raw = localStorage.getItem('fixmate_v3_state');
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && parsed.users && parsed.services && parsed.bookings && parsed.payments) {
             state = parsed;
+            if (parsed.previewMode === true && parsed.currentUser) {
+              authMode = 'preview';
+            } else {
+              state.currentUser = null;
+            }
           }
         }
         const savedTheme = localStorage.getItem('fixmate_theme');
         if (savedTheme === 'dark' || savedTheme === 'light') state.theme = savedTheme;
-      } catch (e) {}
+      } catch (e) {
+        authMode = 'none';
+        state = JSON.parse(JSON.stringify(INITIAL_STATE));
+      }
     }
 
     async function getApiToken(forceRefresh = false) {
@@ -886,12 +900,37 @@
     // ============================================================================
 
     function routeFromBrowserLocation() {
-      const segments = decodeURIComponent(window.location.pathname || '/').split('/').filter(Boolean);
-      if (segments.length === 2 && segments[0] === 'services') {
+      let pathname = '/';
+      try {
+        pathname = decodeURIComponent(window.location.pathname || '/');
+      } catch (error) {
+        pathname = '/';
+      }
+      while (pathname.length > 1 && pathname.endsWith('/')) {
+        pathname = pathname.slice(0, -1);
+      }
+      const segments = pathname.split('/').filter(Boolean);
+
+      if (segments.length === 2 && segments[0] === 'services' && segments[1]) {
         state.selectedServiceId = segments[1];
         return '/services/[id]';
       }
-      return segments.length ? '/' + segments.join('/') : '/';
+
+      const exactRoutes = [
+        '/', '/services', '/about', '/sign-in', '/sign-up',
+        '/payment/success', '/payment/cancel', '/dashboard/profile'
+      ];
+      const validDashboardRole = segments.length >= 2 &&
+        segments[0] === 'dashboard' &&
+        ['customer', 'technician', 'admin'].includes(segments[1]) &&
+        segments.slice(2).every(part => Array.from(part).every(char =>
+          'abcdefghijklmnopqrstuvwxyz0123456789_-'.includes(char.toLowerCase())
+        ));
+      if (exactRoutes.includes(pathname) || validDashboardRole) return pathname;
+
+      // Unknown URLs return to the home page instead of rendering a 404 screen.
+      window.history.replaceState({ fixmateDemo: true }, '', '/');
+      return '/';
     }
 
     function syncServiceQueryFromLocation() {
@@ -2024,34 +2063,6 @@
     // ----------------------------------------------------------------------------
     // 5.7 CUSTOM 404 NOT FOUND PAGE (not-found.tsx)
     // ----------------------------------------------------------------------------
-    function renderNotFoundPage(reason = 'The page or repair service route you requested could not be found.') {
-      return `
-        <div class="max-w-xl mx-auto px-4 py-16 text-center w-full">
-          <div class="p-8 sm:p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg">
-            <!-- Repair/Tools-Themed SVG Illustration (Additional Req #2) -->
-            <div class="w-24 h-24 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-500 flex items-center justify-center mx-auto mb-5">
-              <svg class="w-12 h-12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
-            </div>
-            <span class="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-xs font-bold">404 • Page Not Found</span>
-            <h1 class="font-display font-extrabold text-3xl text-slate-900 dark:text-white mt-3">Circuit Disconnected!</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-              ${escapeHtml(reason)}
-            </p>
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <button id="btn404BackHome" type="button" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold">
-                ← Back to Home
-              </button>
-              <button id="btn404Browse" type="button" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-semibold">
-                Browse Approved Services
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     // ============================================================================
     // 6. UNIFIED DASHBOARD LAYOUT & ROLE-PROTECTED SUB-ROUTES
     // ============================================================================
@@ -3927,7 +3938,9 @@
       } else if (r.startsWith('/dashboard')) {
         viewport.innerHTML = renderDashboardLayout();
       } else {
-        viewport.innerHTML = renderNotFoundPage();
+        state.route = '/';
+        writeBrowserLocation('/', true);
+        viewport.innerHTML = renderHomePage();
       }
 
       bindDynamicViewEvents();
@@ -4654,9 +4667,6 @@
         });
       }
 
-      // 404 Page Buttons
-      document.getElementById('btn404BackHome')?.addEventListener('click', () => navigate('/'));
-      document.getElementById('btn404Browse')?.addEventListener('click', () => navigate('/services'));
     }
 
     // ============================================================================
@@ -4666,12 +4676,18 @@
       if (window.__FIXMATE_DEMO_BOOTED__) return;
       window.__FIXMATE_DEMO_BOOTED__ = true;
       loadState();
-      // Old demo sessions must never masquerade as real production authentication.
+      // Keep a locally selected preview persona across refreshes, but always prefer a real API session.
+      const savedPreviewUser = authMode === 'preview' ? state.currentUser : null;
       state.currentUser = null;
       activeApiToken = '';
       authMode = 'none';
-      try { await restoreApiSession(); }
+      let apiSessionRestored = false;
+      try { apiSessionRestored = await restoreApiSession(); }
       catch (error) { console.warn('FixMate session restore:', error); }
+      if (!apiSessionRestored && savedPreviewUser) {
+        state.currentUser = savedPreviewUser;
+        authMode = 'preview';
+      }
       try {
         const publicCatalogue = await apiRequest('/services?limit=48', {}, false);
         if (Array.isArray(publicCatalogue.data)) state.services = publicCatalogue.data;
@@ -4690,7 +4706,11 @@
           const detail = await apiRequest('/services/' + encodeURIComponent(state.selectedServiceId), {}, false);
           const index = state.services.findIndex(item => String(item._id) === String(state.selectedServiceId));
           if (detail.data && index >= 0) state.services[index] = detail.data;
-        } catch (error) { console.warn('FixMate service detail:', error); }
+        } catch (error) {
+          console.warn('FixMate service detail:', error);
+          state.route = '/';
+          writeBrowserLocation('/', true);
+        }
       }
       if (authMode === 'api' && state.route === '/payment/success') {
         const sessionId = new URLSearchParams(window.location.search).get('session_id');
