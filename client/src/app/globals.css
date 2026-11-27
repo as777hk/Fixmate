@@ -29,6 +29,19 @@ body {
 html.dark body {
   color-scheme: dark;
 }
+/* Keep semantic headings readable even if a utility class is applied in the wrong order. */
+html[data-theme="light"] h1.text-slate-900,
+html[data-theme="light"] h2.text-slate-900,
+html[data-theme="light"] h3.text-slate-900,
+html[data-theme="light"] h4.text-slate-900 {
+  color: #0f172a !important;
+}
+html[data-theme="dark"] h1.text-slate-900,
+html[data-theme="dark"] h2.text-slate-900,
+html[data-theme="dark"] h3.text-slate-900,
+html[data-theme="dark"] h4.text-slate-900 {
+  color: #f1f5f9 !important;
+}
 button, input, textarea, select { font: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline: 2px solid #3b82f6;
