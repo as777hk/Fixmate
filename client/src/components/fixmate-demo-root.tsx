@@ -107,8 +107,8 @@ export function FixMateDemoRoot() {
         await loadScript("https://cdn.tailwindcss.com/3.4.17", "fixmate-tailwind-cdn");
         if (disposed) return;
 
-        await loadScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js", "fixmate-chartjs");
-        if (disposed) return;
+        // Chart.js is loaded only when a dashboard chart is actually needed.
+        // Keeping it out of the startup waterfall makes public pages interactive sooner.
         await loadScript("/fixmate-demo.js", "fixmate-demo-runtime");
       } catch (err) {
         if (!disposed) setError(err instanceof Error ? err.message : "FixMate could not be started.");
