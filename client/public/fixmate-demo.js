@@ -2061,9 +2061,6 @@
       `;
     }
 
-    // ----------------------------------------------------------------------------
-    // 5.7 CUSTOM 404 NOT FOUND PAGE (not-found.tsx)
-    // ----------------------------------------------------------------------------
     // ============================================================================
     // 6. UNIFIED DASHBOARD LAYOUT & ROLE-PROTECTED SUB-ROUTES
     // ============================================================================
@@ -4111,6 +4108,7 @@
           'admin@fixmate.com'
         ];
         if (password === 'Password123' && previewEmails.includes(email)) {
+          try { await fetch('/api/auth/sign-out', { method: 'POST', credentials: 'include' }); } catch (error) {}
           state.users = JSON.parse(JSON.stringify(INITIAL_STATE.users));
           state.services = JSON.parse(JSON.stringify(INITIAL_STATE.services));
           state.bookings = JSON.parse(JSON.stringify(INITIAL_STATE.bookings));
