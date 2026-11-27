@@ -588,6 +588,7 @@
 
     let state = JSON.parse(JSON.stringify(INITIAL_STATE));
     let activeCharts = [];
+    let chartJsLoadPromise = null;
     let heroTicketTimer = null;
 
     function startHeroTicketAnimation() {
@@ -3220,7 +3221,52 @@
     // ============================================================================
     // 7. CHARTS INITIALIZATION FOR DASHBOARD OVERVIEWS
     // ============================================================================
-    function initDashboardCharts() {      destroyCharts();
+    function ensureChartJsLoaded() {
+      if (typeof window.Chart !== 'undefined') return Promise.resolve();
+      if (chartJsLoadPromise) return chartJsLoadPromise;
+
+      chartJsLoadPromise = new Promise((resolve, reject) => {
+        const existing = document.getElementById('fixmate-chartjs');
+        if (existing) {
+          if (existing.dataset.loaded === 'true') {
+            resolve();
+            return;
+          }
+          existing.addEventListener('load', resolve, { once: true });
+          existing.addEventListener('error', () => reject(new Error('Chart.js could not be loaded.')), { once: true });
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'fixmate-chartjs';
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        script.async = true;
+        script.onload = () => {
+          script.dataset.loaded = 'true';
+          resolve();
+        };
+        script.onerror = () => reject(new Error('Chart.js could not be loaded.'));
+        document.head.appendChild(script);
+      });
+
+      return chartJsLoadPromise;
+    }
+
+    function initDashboardCharts() {
+      if (typeof window.Chart === 'undefined') {
+        ensureChartJsLoaded()
+          .then(() => {
+            if (document.getElementById('customerOverviewChart') ||
+                document.getElementById('techOverviewChart') ||
+                document.getElementById('adminOverviewChart')) {
+              initDashboardCharts();
+            }
+          })
+          .catch(error => console.error('FixMate dashboard charts:', error));
+        return;
+      }
+
+      destroyCharts();
       const textColor = state.theme === 'dark' ? '#cbd5e1' : '#475569';
 
       const custCanvas = document.getElementById('customerOverviewChart');
@@ -4896,27 +4942,49 @@
       });
       document.getElementById('skeletonLoaderView')?.remove();
       loadState();
-      // Keep a locally selected preview persona across refreshes, but always prefer a real API session.
+      // Keep a locally selected preview persona visible immediately while the real
+      // session is checked in parallel with the public catalogue request.
       const savedPreviewUser = authMode === 'preview' ? state.currentUser : null;
-      state.currentUser = null;
+      state.currentUser = savedPreviewUser;
       activeApiToken = '';
-      authMode = 'none';
-      let apiSessionRestored = false;
-      try { apiSessionRestored = await restoreApiSession(); }
-      catch (error) { console.warn('FixMate session restore:', error); }
+      authMode = savedPreviewUser ? 'preview' : 'none';
+
+      // Public pages can render from the local snapshot immediately. Protected routes
+      // wait for the session check so an unauthenticated visitor never sees a dashboard.
+      state.route = routeFromBrowserLocation();
+      syncServiceQueryFromLocation();
+      if ((state.route === '/sign-in' || state.route === '/sign-up') && state.currentUser) {
+        state.route = getRoleDashboardRoute(state.currentUser);
+        writeBrowserLocation(state.route, true);
+      }
+      const requestedRouteAtBoot = state.route;
+      const protectedBootRoute = requestedRouteAtBoot.startsWith('/dashboard') ||
+        requestedRouteAtBoot.startsWith('/payment');
+      if (!protectedBootRoute) renderApp();
+
+      const sessionRestorePromise = restoreApiSession().catch(error => {
+        console.warn('FixMate session restore:', error);
+        return false;
+      });
+      const publicCataloguePromise = apiRequest('/services?limit=48', {}, false)
+        .then(publicCatalogue => {
+          if (Array.isArray(publicCatalogue.data)) state.services = publicCatalogue.data;
+        })
+        .catch(error => console.warn('FixMate public service catalogue:', error));
+
+      const apiSessionRestored = await sessionRestorePromise;
       if (!apiSessionRestored && savedPreviewUser) {
         state.currentUser = savedPreviewUser;
         authMode = 'preview';
       }
-      try {
-        const publicCatalogue = await apiRequest('/services?limit=48', {}, false);
-        if (Array.isArray(publicCatalogue.data)) state.services = publicCatalogue.data;
-      } catch (error) {
-        console.warn('FixMate public service catalogue:', error);
-      }
+      await publicCataloguePromise;
+
       if (authMode === 'api') {
-        try { await refreshApiWorkspace(); }
-        catch (error) { console.error('FixMate live workspace data:', error); }
+        const workspaceLoad = refreshApiWorkspace().catch(error => {
+          console.error('FixMate live workspace data:', error);
+        });
+        // A public page should not be held behind dashboard-only API calls.
+        if (protectedBootRoute) await workspaceLoad;
       }
       syncHeaderAndTheme();
       state.route = routeFromBrowserLocation();
@@ -5134,6 +5202,13 @@
         renderApp();
       });
       renderApp();
+      if (authMode === 'api' && !protectedBootRoute) {
+        refreshApiWorkspace()
+          .then(() => {
+            if (state.route.startsWith('/dashboard')) renderApp();
+          })
+          .catch(error => console.error('FixMate background workspace refresh:', error));
+      }
     }
 
     if (document.readyState === 'loading') {
