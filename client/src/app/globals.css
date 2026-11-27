@@ -42,6 +42,40 @@ html[data-theme="dark"] h3.text-slate-900,
 html[data-theme="dark"] h4.text-slate-900 {
   color: #f1f5f9 !important;
 }
+/* FixMate cards: clean white surfaces in day mode and dark surfaces at night. */
+html[data-theme="light"] :is(article, div, button)[class*="rounded-"][class*="bg-slate-50"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html[data-theme="light"] :is(article, div, button)[class*="rounded-"][class*="bg-white"] {
+  background-color: #ffffff !important;
+  color: #0f172a;
+}
+html[data-theme="light"] :is(article, div, button)[class*="rounded-"][class*="bg-white"] :is(h1, h2, h3, h4, h5, h6, p, span, small, label, strong)[class~="text-white"]:not([class*="bg-"]) {
+  color: #0f172a !important;
+}
+html[data-theme="light"] .fixmate-theme-surface {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+html[data-theme="light"] .fixmate-theme-surface :is(h1, h2, h3, h4, h5, h6, p, span, small, label, strong)[class~="text-white"] {
+  color: #0f172a !important;
+}
+html[data-theme="light"] .fixmate-theme-surface :is(p, span, small, label)[class~="text-slate-100"],
+html[data-theme="light"] .fixmate-theme-surface :is(p, span, small, label)[class~="text-slate-200"],
+html[data-theme="light"] .fixmate-theme-surface :is(p, span, small, label)[class~="text-slate-300"],
+html[data-theme="light"] .fixmate-theme-surface :is(p, span, small, label)[class~="text-slate-400"] {
+  color: #475569 !important;
+}
+html[data-theme="light"] .fixmate-theme-surface [class~="text-emerald-400"] {
+  color: #047857 !important;
+}
+/* Re-enable the original dark card palette when night mode is active. */
+html[data-theme="dark"] .fixmate-theme-surface {
+  color: #f8fafc;
+}
 button, input, textarea, select { font: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline: 2px solid #3b82f6;
