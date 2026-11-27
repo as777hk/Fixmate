@@ -1029,7 +1029,8 @@
           if (savedTheme === 'dark' || savedTheme === 'light') state.theme = savedTheme;
         } catch (error) {}
       } else if (!isAdmin) {
-        state.theme = 'light';
+        // Non-admin roles retain the original Night/Dark appearance.
+        state.theme = 'dark';
       }
       lastThemeAdminAccess = isAdmin;
       const darkMode = state.theme === 'dark';
@@ -4998,7 +4999,7 @@
         if (!toggle) return;
         event.preventDefault();
         if (state.currentUser?.role !== 'admin') {
-          state.theme = 'light';
+          state.theme = 'dark';
           syncHeaderAndTheme();
           showToast('Day/Night mode is under construction and currently available to Admin only.', 'warning');
           return;
