@@ -3919,6 +3919,97 @@
       document.getElementById('codeModalCloseBtn')?.addEventListener('click', closeModal);
     }
 
+    // Day-mode card contrast is applied after runtime Tailwind renders dynamic HTML.
+    // This avoids invisible white labels inside cards regardless of CDN utility order.
+    let fixMateCardThemeObserver = null;
+
+    function hasFixMateAccentBackground(element) {
+      const cls = typeof element.className === 'string' ? element.className : '';
+      return /(?:^|\\s)bg-(?:blue|indigo|emerald|amber|rose|orange|cyan|teal|violet|purple|fuchsia)(?:-|\\/|\\s)/.test(cls)
+        || /(?:^|\\s)bg-gradient-to-/.test(cls);
+    }
+
+    function isInsideFixMateAccent(element, card) {
+      let node = element;
+      while (node && node !== card) {
+        if (hasFixMateAccentBackground(node)) return true;
+        node = node.parentElement;
+      }
+      return false;
+    }
+
+    function clearFixMateDayOverride(element, property, marker) {
+      if (!element.hasAttribute(marker)) return;
+      const original = element.getAttribute(marker);
+      if (original === '') element.style.removeProperty(property);
+      else element.style.setProperty(property, original);
+      element.removeAttribute(marker);
+    }
+
+    function applyFixMateDayOverride(element, property, value, marker) {
+      if (!element.hasAttribute(marker)) {
+        element.setAttribute(marker, element.style.getPropertyValue(property));
+      }
+      element.style.setProperty(property, value, 'important');
+    }
+
+    function syncFixMateCardTheme(scope = document) {
+      const darkMode = state.theme === 'dark';
+      if (darkMode) {
+        scope.querySelectorAll('[data-fm-day-surface]').forEach(card => {
+          clearFixMateDayOverride(card, 'background-color', 'data-fm-original-bg');
+          clearFixMateDayOverride(card, 'border-color', 'data-fm-original-border');
+          clearFixMateDayOverride(card, 'color', 'data-fm-original-color');
+          clearFixMateDayOverride(card, 'box-shadow', 'data-fm-original-shadow');
+          card.removeAttribute('data-fm-day-surface');
+        });
+        scope.querySelectorAll('[data-fm-day-text]').forEach(label => {
+          clearFixMateDayOverride(label, 'color', 'data-fm-original-text');
+          label.removeAttribute('data-fm-day-text');
+        });
+        return;
+      }
+
+      const candidates = scope.querySelectorAll('article, [class*="rounded-"][class*="p-"]');
+      candidates.forEach(card => {
+        const cls = typeof card.className === 'string' ? card.className : '';
+        const hasThemeSurface = /(?:^|\\s)bg-(?:white|slate-(?:50|100|800|900|950))(?:\\/[0-9]+)?(?:\\s|$)/.test(cls);
+        const isPadded = /(?:^|\\s)p-[0-9]+(?:\\s|$)/.test(cls);
+        const excluded = /(?:^|\\s)(?:absolute|fixed|sticky)(?:\\s|$)/.test(cls)
+          || /bg-gradient-to-|backdrop-blur/.test(cls)
+          || !!card.closest('section.bg-slate-900.text-white');
+        if ((!hasThemeSurface && !card.classList.contains('fixmate-theme-surface')) || (!isPadded && card.tagName !== 'ARTICLE') || excluded) return;
+
+        applyFixMateDayOverride(card, 'background-color', '#ffffff', 'data-fm-original-bg');
+        applyFixMateDayOverride(card, 'border-color', '#e2e8f0', 'data-fm-original-border');
+        applyFixMateDayOverride(card, 'color', '#0f172a', 'data-fm-original-color');
+        applyFixMateDayOverride(card, 'box-shadow', '0 8px 24px rgba(15, 23, 42, 0.06)', 'data-fm-original-shadow');
+        card.setAttribute('data-fm-day-surface', 'true');
+
+        card.querySelectorAll('h1,h2,h3,h4,h5,h6,p,span,small,label,strong,td,th,a').forEach(label => {
+          if (isInsideFixMateAccent(label, card)) return;
+          const textCls = typeof label.className === 'string' ? label.className : '';
+          let color = '';
+          if (/(?:^|\\s)text-white(?:\\s|$)/.test(textCls)) color = '#0f172a';
+          else if (/(?:^|\\s)text-slate-(?:100|200|300)(?:\\s|$)/.test(textCls)) color = '#334155';
+          else if (/(?:^|\\s)text-slate-400(?:\\s|$)/.test(textCls)) color = '#64748b';
+          if (!color) return;
+          applyFixMateDayOverride(label, 'color', color, 'data-fm-original-text');
+          label.setAttribute('data-fm-day-text', 'true');
+        });
+      });
+    }
+
+    function installFixMateCardThemeObserver() {
+      if (fixMateCardThemeObserver || !document.body || typeof MutationObserver === 'undefined') return;
+      fixMateCardThemeObserver = new MutationObserver(records => {
+        if (records.some(record => record.addedNodes && record.addedNodes.length)) {
+          syncFixMateCardTheme(document);
+        }
+      });
+      fixMateCardThemeObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
     // ============================================================================
     // 9. MASTER APP RENDER & EVENT DELEGATION
     // ============================================================================
@@ -3953,6 +4044,9 @@
         viewport.innerHTML = renderHomePage();
       }
 
+      // Apply after innerHTML replacement: the runtime Tailwind CDN can otherwise leave white text in light cards.
+      syncFixMateCardTheme(document);
+      installFixMateCardThemeObserver();
       bindDynamicViewEvents();
       if (r.startsWith('/dashboard')) {
         setTimeout(initDashboardCharts, 30);
